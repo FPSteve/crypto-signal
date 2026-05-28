@@ -180,9 +180,11 @@ function researchFromAnthropicPayload(symbol: string, query: string, payload: An
 }
 
 async function findViaLocalBridge(symbol: string, query: string) {
-  const bridgeUrl = process.env.FOUR_PILLARS_BRIDGE_URL?.trim();
+  // Try unified relay first, fall back to dedicated bridge
+  const bridgeUrl = process.env.CRYPTO_AI_RELAY_URL?.trim() ?? process.env.FOUR_PILLARS_BRIDGE_URL?.trim();
   if (!bridgeUrl) return null;
 
+  const bridgeToken = process.env.CRYPTO_AI_RELAY_TOKEN?.trim() ?? process.env.FOUR_PILLARS_BRIDGE_TOKEN?.trim();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Number(process.env.FOUR_PILLARS_BRIDGE_TIMEOUT_MS ?? 180_000));
 
@@ -191,7 +193,7 @@ async function findViaLocalBridge(symbol: string, query: string) {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        ...(process.env.FOUR_PILLARS_BRIDGE_TOKEN ? { "x-research-token": process.env.FOUR_PILLARS_BRIDGE_TOKEN } : {}),
+        ...(bridgeToken ? { "x-crypto-ai-token": bridgeToken } : {}),
       },
       body: JSON.stringify({ symbol, query }),
       signal: controller.signal,
