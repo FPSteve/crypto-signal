@@ -77,7 +77,7 @@ export function findResearch(symbol: string): ResearchMatch {
   return {
     symbol: normalized,
     title: `${coinName} Four Pillars 리서치 검색`,
-    url: googleSearchUrl(query),
+    url: `https://research.4pillars.io/en/search?q=${encodeURIComponent(normalized.toLowerCase())}`,
     searchUrl: googleSearchUrl(query),
     summary: "검증된 직접 아티클 URL은 /api/research 런타임 검색으로 확인합니다.",
     query,

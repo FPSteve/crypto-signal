@@ -1,5 +1,8 @@
 import { Activity, ShieldAlert } from "lucide-react";
 import type { summarizeRegime } from "@/lib/signal-engine";
+import { Card, CardBody } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { AnimatedRegimeStat } from "@/components/AnimatedRegimeStat";
 
 type MarketRegimeProps = {
   regime: ReturnType<typeof summarizeRegime>;
@@ -9,32 +12,42 @@ export function MarketRegime({ regime }: MarketRegimeProps) {
   const isBear = regime.label === "BEAR";
 
   return (
-    <section className="border-b border-white/10 bg-[#101317] px-5 py-5 sm:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <div className={`mt-1 rounded-md p-2 ${isBear ? "bg-red-500/10 text-red-300" : "bg-emerald-500/10 text-emerald-300"}`}>
-            {isBear ? <ShieldAlert size={20} /> : <Activity size={20} />}
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Market Regime</p>
-            <h2 className="mt-1 text-2xl font-semibold text-white">BTC 기준 {regime.label}</h2>
-            <p className="mt-1 max-w-3xl text-sm text-gray-400">{regime.note}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3 text-sm">
-          <div className="min-w-24 border-l border-white/10 pl-4">
-            <p className="text-gray-500">7일</p>
-            <p className="mt-1 font-semibold text-white">{regime.change7d ?? "n/a"}%</p>
-          </div>
-          <div className="min-w-24 border-l border-white/10 pl-4">
-            <p className="text-gray-500">30일</p>
-            <p className="mt-1 font-semibold text-white">{regime.change30d ?? "n/a"}%</p>
-          </div>
-          <div className="min-w-32 border-l border-white/10 pl-4">
-            <p className="text-gray-500">구조</p>
-            <p className="mt-1 font-semibold text-white">{regime.structure}</p>
-          </div>
-        </div>
+    <section
+      className="px-5 py-6 sm:px-8"
+      style={{ background: "var(--gradient-hero)" }}
+    >
+      <div className="mx-auto max-w-7xl">
+        <Card hover={false} glow={isBear ? "bear" : "bull"}>
+          <CardBody className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] ${
+                  isBear ? "bg-[var(--accent-bear-bg)] text-[var(--accent-bear)]" : "bg-[var(--accent-bull-bg)] text-[var(--accent-bull)]"
+                }`}
+              >
+                {isBear ? <ShieldAlert size={20} /> : <Activity size={20} />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    Market Regime
+                  </p>
+                  <Badge variant={isBear ? "bear" : "bull"}>{regime.label}</Badge>
+                </div>
+                <h2 className="mt-1.5 text-xl font-semibold text-[var(--text-primary)]">
+                  BTC 기준 {regime.label}
+                </h2>
+                <p className="mt-1 max-w-3xl text-sm text-[var(--text-secondary)]">{regime.note}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <AnimatedRegimeStat label="7일" value={regime.change7d} />
+              <AnimatedRegimeStat label="30일" value={regime.change30d} />
+              <AnimatedRegimeStat label="구조" value={regime.structure} />
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </section>
   );

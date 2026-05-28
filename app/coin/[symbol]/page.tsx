@@ -5,6 +5,14 @@ import { ResearchEmbed } from "@/components/ResearchEmbed";
 import { buildSignal } from "@/lib/signal-engine";
 import { findResearch } from "@/lib/four-pillars";
 import { getDayCandles, getTickers, toKrwMarket } from "@/lib/upbit";
+import {
+  AnimatedCoinHeader,
+  AnimatedCoinChart,
+  AnimatedCoinSidebar,
+  AnimatedScore,
+  AnimatedPrice,
+  AnimatedChange,
+} from "@/components/CoinDetailAnimations";
 
 export const revalidate = 300;
 
@@ -19,6 +27,7 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
   return (
     <main className="min-h-screen bg-[#080a0d] px-5 py-5 sm:px-8">
       <div className="mx-auto max-w-7xl">
+        <AnimatedCoinHeader>
         <header className="flex flex-col gap-5 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-white">
@@ -31,22 +40,24 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
           <div className="grid grid-cols-3 gap-5 text-sm">
             <div>
               <p className="text-gray-500">Score</p>
-              <p className="mt-1 text-2xl font-semibold text-white">{signal.score}</p>
+              <p className="mt-1 text-2xl font-semibold text-white"><AnimatedScore value={signal.score} /></p>
             </div>
             <div>
               <p className="text-gray-500">24h</p>
               <p className={signal.change24h >= 0 ? "mt-1 text-2xl font-semibold text-emerald-400" : "mt-1 text-2xl font-semibold text-red-400"}>
-                {signal.change24h}%
+                <AnimatedChange value={signal.change24h} />
               </p>
             </div>
             <div>
               <p className="text-gray-500">Price</p>
-              <p className="mt-1 text-2xl font-semibold text-white">{Math.round(signal.price).toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-semibold text-white"><AnimatedPrice value={signal.price} /></p>
             </div>
           </div>
         </header>
+        </AnimatedCoinHeader>
 
         <section className="grid gap-8 py-8 lg:grid-cols-[1fr_24rem]">
+          <AnimatedCoinChart>
           <div>
             <CandleChart candles={candles} />
             <div className="mt-4 flex gap-4 text-xs text-gray-500">
@@ -55,6 +66,8 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
               <span>일봉 기준</span>
             </div>
           </div>
+          </AnimatedCoinChart>
+          <AnimatedCoinSidebar>
           <aside>
             <section className="border-b border-white/10 pb-6">
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Logic</p>
@@ -72,8 +85,11 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
                 </div>
               </div>
             </section>
-            <ResearchEmbed research={research} />
+            <div id="research">
+              <ResearchEmbed research={research} />
+            </div>
           </aside>
+          </AnimatedCoinSidebar>
         </section>
       </div>
     </main>

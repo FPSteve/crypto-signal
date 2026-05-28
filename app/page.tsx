@@ -1,9 +1,19 @@
 import Link from "next/link";
-import { MessageSquare, RefreshCcw } from "lucide-react";
+import { MessageSquare, RefreshCcw, TrendingUp } from "lucide-react";
 import { MarketRegime } from "@/components/MarketRegime";
 import { CompactSignalRow, SignalCard } from "@/components/SignalCard";
 import { buildSignal, summarizeRegime } from "@/lib/signal-engine";
 import { getDayCandles, getTopKrwTickers } from "@/lib/upbit";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import {
+  AnimatedHeader,
+  AnimatedRegimeSection,
+  AnimatedSignalList,
+  AnimatedSignalItem,
+  AnimatedSidebar,
+} from "@/components/DashboardAnimations";
 
 export const revalidate = 300;
 
@@ -34,79 +44,126 @@ export default async function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#080a0d]">
-      <header className="border-b border-white/10 px-5 py-4 sm:px-8">
+    <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-[var(--glass-border)] bg-[var(--bg-base)]/80 backdrop-blur-lg px-5 py-3.5 sm:px-8">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <Link href="/" className="text-lg font-semibold text-white">
-            Crypto Signal Hub
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/chat" className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20">
-              <MessageSquare size={13} />
-              AI 채팅
-            </Link>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <RefreshCcw size={14} />
-              Upbit 5분 캐시
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-[var(--text-primary)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-gradient-to-br from-emerald-500 to-cyan-500">
+              <TrendingUp size={16} className="text-white" />
             </div>
+            <span>Signal Hub</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/chat">
+              <Button variant="primary" size="sm">
+                <MessageSquare size={13} />
+                AI 채팅
+              </Button>
+            </Link>
+            <span className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+              <RefreshCcw size={12} />
+              5분
+            </span>
           </div>
         </div>
       </header>
 
-      <MarketRegime regime={regime} />
+      {/* Market Regime */}
+      <AnimatedRegimeSection>
+        <MarketRegime regime={regime} />
+      </AnimatedRegimeSection>
 
+      {/* Main Content */}
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[1fr_22rem]">
+        {/* Signal Cards */}
         <div>
-          <div className="flex items-end justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Daily Signals</p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">KRW 마켓 상위 종목 분석</h1>
+          <AnimatedHeader>
+            <div className="flex items-end justify-between gap-4 pb-5">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                  Daily Signals
+                </p>
+                <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)] sm:text-3xl">
+                  KRW 마켓 상위 종목 분석
+                </h1>
+              </div>
+              <p className="hidden max-w-xs text-right text-sm leading-6 text-[var(--text-muted)] sm:block">
+                거래대금 상위 종목을 EMA, RSI, 7일 모멘텀 기준으로 1차 선별합니다.
+              </p>
             </div>
-            <p className="hidden max-w-sm text-right text-sm leading-6 text-gray-500 sm:block">
-              거래대금 상위 종목을 EMA, RSI, 7일 모멘텀 기준으로 1차 선별합니다.
-            </p>
-          </div>
+          </AnimatedHeader>
 
-          <div>
+          <AnimatedSignalList>
             {topSignals.map((signal, index) => (
-              <SignalCard key={signal.market} signal={signal} rank={index + 1} />
+              <AnimatedSignalItem key={signal.market}>
+                <SignalCard signal={signal} rank={index + 1} />
+              </AnimatedSignalItem>
             ))}
-          </div>
+          </AnimatedSignalList>
         </div>
 
-        <aside className="lg:sticky lg:top-4 lg:self-start">
-          <section className="border-b border-white/10 pb-6">
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Buckets</p>
-            <div className="mt-4 grid gap-5">
-              <div>
-                <h2 className="text-sm font-semibold text-white">데이트레이드</h2>
-                {buckets.daytrade.length ? buckets.daytrade.map((signal) => <CompactSignalRow key={signal.market} signal={signal} />) : <p className="mt-3 text-sm text-gray-500">강한 단기 후보 없음</p>}
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-white">스윙</h2>
-                {buckets.swing.length ? buckets.swing.map((signal) => <CompactSignalRow key={signal.market} signal={signal} />) : <p className="mt-3 text-sm text-gray-500">스윙 후보 없음</p>}
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-white">포지션</h2>
-                {buckets.position.length ? buckets.position.map((signal) => <CompactSignalRow key={signal.market} signal={signal} />) : <p className="mt-3 text-sm text-gray-500">포지션 후보 없음</p>}
-              </div>
-            </div>
-          </section>
+        {/* Sidebar */}
+        <AnimatedSidebar>
+        <aside className="space-y-6 lg:sticky lg:top-16 lg:self-start">
+          {/* Buckets */}
+          <Card hover={false}>
+            <CardHeader>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                Buckets
+              </p>
+            </CardHeader>
+            <CardBody className="space-y-5">
+              {(["daytrade", "swing", "position"] as const).map((key) => {
+                const labels = { daytrade: "데이트레이드", swing: "스윙", position: "포지션" };
+                const variants = { daytrade: "bear" as const, swing: "blue" as const, position: "bull" as const };
+                return (
+                  <div key={key}>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={variants[key]}>{labels[key]}</Badge>
+                    </div>
+                    <div className="mt-2">
+                      {buckets[key].length ? (
+                        buckets[key].map((signal) => <CompactSignalRow key={signal.market} signal={signal} />)
+                      ) : (
+                        <p className="py-2 text-xs text-[var(--text-muted)]">후보 없음</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </CardBody>
+          </Card>
 
-          <section className="py-6">
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Top Volume</p>
-            <div className="mt-4">
+          {/* Top Volume */}
+          <Card hover={false}>
+            <CardHeader>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                Top Volume
+              </p>
+            </CardHeader>
+            <CardBody className="!pt-0">
               {tickers.slice(0, 8).map((ticker) => (
-                <Link key={ticker.market} href={`/coin/${ticker.market.replace("KRW-", "")}`} className="flex justify-between border-b border-white/10 py-3 text-sm">
-                  <span className="text-gray-300">{ticker.market.replace("KRW-", "")}</span>
-                  <span className={ticker.signed_change_rate >= 0 ? "text-emerald-400" : "text-red-400"}>
+                <Link
+                  key={ticker.market}
+                  href={`/coin/${ticker.market.replace("KRW-", "")}`}
+                  className="flex justify-between border-b border-[var(--glass-border)] py-3 text-sm transition-colors hover:bg-white/[0.02]"
+                  style={{ transitionDuration: "var(--duration-fast)" }}
+                >
+                  <span className="text-[var(--text-secondary)] font-medium">{ticker.market.replace("KRW-", "")}</span>
+                  <span
+                    className={`tabular-nums font-[family-name:var(--font-geist-mono)] ${
+                      ticker.signed_change_rate >= 0 ? "text-[var(--accent-bull)]" : "text-[var(--accent-bear)]"
+                    }`}
+                  >
                     {(ticker.signed_change_rate * 100).toFixed(1)}%
                   </span>
                 </Link>
               ))}
-            </div>
-          </section>
+            </CardBody>
+          </Card>
         </aside>
+        </AnimatedSidebar>
       </section>
     </main>
   );

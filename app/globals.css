@@ -1,21 +1,163 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens ─── */
 :root {
   color-scheme: dark;
-  background: #080a0d;
+
+  /* Surface */
+  --bg-base: #060809;
+  --bg-raised: #0c0f14;
+  --bg-card: rgba(14, 17, 23, 0.7);
+  --bg-card-hover: rgba(20, 24, 32, 0.8);
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-hover: rgba(255, 255, 255, 0.08);
+
+  /* Text */
+  --text-primary: #f0f2f5;
+  --text-secondary: #8b95a5;
+  --text-muted: #4a5568;
+
+  /* Accent */
+  --accent-bull: #34d399;
+  --accent-bull-bg: rgba(52, 211, 153, 0.08);
+  --accent-bear: #f87171;
+  --accent-bear-bg: rgba(248, 113, 113, 0.08);
+  --accent-blue: #60a5fa;
+  --accent-blue-bg: rgba(96, 165, 250, 0.08);
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, rgba(52, 211, 153, 0.06) 0%, transparent 50%, rgba(96, 165, 250, 0.04) 100%);
+  --gradient-card: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+  --gradient-accent: linear-gradient(135deg, #34d399 0%, #60a5fa 100%);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow-bull: 0 0 20px rgba(52, 211, 153, 0.15);
+  --shadow-glow-bear: 0 0 20px rgba(248, 113, 113, 0.15);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Transition */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
 }
 
+/* ─── Base ─── */
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #080a0d;
-  color: #f8fafc;
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   text-decoration: none;
+}
+
+/* ─── Glassmorphism ─── */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Glow effects ─── */
+.glow-bull {
+  box-shadow: var(--shadow-glow-bull);
+}
+
+.glow-bear {
+  box-shadow: var(--shadow-glow-bear);
+}
+
+/* ─── Animated gradient border ─── */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-accent);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  opacity: 0.3;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.gradient-border:hover::before {
+  opacity: 0.6;
+}
+
+/* ─── Score ring animation ─── */
+@keyframes score-fill {
+  from { stroke-dashoffset: 100; }
+}
+
+/* ─── Subtle float animation ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ─── Shimmer for skeleton ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--glass-bg) 25%, rgba(255, 255, 255, 0.06) 50%, var(--glass-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Pulse glow ─── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(52, 211, 153, 0.08); }
+  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.18); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ─── Number tabular figures ─── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
