@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RefreshCcw } from "lucide-react";
+import { MessageSquare, RefreshCcw } from "lucide-react";
 import { MarketRegime } from "@/components/MarketRegime";
 import { CompactSignalRow, SignalCard } from "@/components/SignalCard";
 import { buildSignal, summarizeRegime } from "@/lib/signal-engine";
@@ -40,9 +40,15 @@ export default async function Home() {
           <Link href="/" className="text-lg font-semibold text-white">
             Crypto Signal Hub
           </Link>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <RefreshCcw size={14} />
-            Upbit 5분 캐시
+          <div className="flex items-center gap-4">
+            <Link href="/chat" className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20">
+              <MessageSquare size={13} />
+              AI 채팅
+            </Link>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <RefreshCcw size={14} />
+              Upbit 5분 캐시
+            </div>
           </div>
         </div>
       </header>
