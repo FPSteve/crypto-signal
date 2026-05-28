@@ -34,7 +34,11 @@ export function SignalCard({ signal, rank }: { signal: CoinSignal; rank: number 
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-500">
           <span>손절 기준 {Math.round(signal.stopLoss).toLocaleString()} KRW</span>
           <span>24h 거래대금 {Math.round(signal.volumeKrw24h / 1_000_000_000).toLocaleString()}B KRW</span>
-          {research && <span>Four Pillars 후보 있음</span>}
+          {research && (
+            <a href={research.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-gray-300">
+              Four Pillars 리서치
+            </a>
+          )}
         </div>
       </div>
       <div className="flex items-center justify-between gap-3 sm:block sm:text-right">

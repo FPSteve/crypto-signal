@@ -162,10 +162,10 @@ function researchContextFor(signals: CoinSignal[]): string {
     .map((research) => `${research.symbol}: ${research.url}`);
 
   if (matches.length === 0) {
-    return "Four Pillars 후보 리서치가 매칭되지 않았습니다.";
+    return "Four Pillars 프로젝트 매칭 없음 — 수동 검색 필요";
   }
 
-  return `후보 리서치 링크: ${matches.join(", ")}`;
+  return `Four Pillars 리서치 검색: ${matches.join(", ")}`;
 }
 
 function fallbackBucketReport(bucket: SignalBucket, signals: CoinSignal[]): BucketReport {
