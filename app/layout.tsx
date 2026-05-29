@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GlobalChrome } from "@/components/GlobalChrome";
+import { getTopKrwTickers } from "@/lib/upbit";
 import "./globals.css";
 
 const geist = Geist({
@@ -17,10 +19,25 @@ export const metadata: Metadata = {
   description: "Upbit market signals with chart logic and Four Pillars research links.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export const revalidate = 60;
+
+async function getChromeTickers() {
+  try {
+    return await getTopKrwTickers(12);
+  } catch {
+    return [];
+  }
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const tickers = await getChromeTickers();
+
   return (
     <html lang="ko" className={`${geist.variable} ${geistMono.variable}`}>
-      <body className="font-[family-name:var(--font-geist)]">{children}</body>
+      <body className="font-[family-name:var(--font-geist)]">
+        <GlobalChrome tickers={tickers} />
+        {children}
+      </body>
     </html>
   );
 }

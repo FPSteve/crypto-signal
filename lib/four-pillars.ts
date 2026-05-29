@@ -2,16 +2,35 @@ export type ResearchStatus = "verified" | "search-fallback";
 
 export type ResearchSource = "anthropic-web-search" | "local-claude-bridge" | "search-url-fallback";
 
+export type ResearchConfidence = "high" | "medium" | "low";
+
+export type ResearchDisplayMode = "ai-synthesis" | "fallback";
+
 export type ResearchMatch = {
   symbol: string;
   title: string;
   url: string;
   searchUrl: string;
   summary: string;
+  displayMode: ResearchDisplayMode;
+  originalLanguage: "en" | "ko" | "unknown";
+  thesis: string | null;
+  keyPoints: string[];
+  risks: string[];
+  confidence: ResearchConfidence;
   query: string;
   status: ResearchStatus;
   source: ResearchSource;
   foundAt: string;
+};
+
+type ResearchCandidate = Partial<
+  Pick<ResearchMatch, "title" | "url" | "summary" | "originalLanguage" | "thesis" | "keyPoints" | "risks" | "confidence">
+> & {
+  symbol?: string;
+  symbols?: string[];
+  tags?: string[];
+  language?: ResearchMatch["originalLanguage"];
 };
 
 type AnthropicTextBlock = {
@@ -47,6 +66,15 @@ const COIN_NAMES: Record<string, string> = {
   WLD: "Worldcoin",
 };
 
+const DEFAULT_BRIDGE_TIMEOUT_MS = 8_000;
+const DEFAULT_ANTHROPIC_TIMEOUT_MS = 20_000;
+
+function boundedTimeoutMs(value: string | undefined, fallback: number, max: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, max);
+}
+
 function normalizeSymbol(symbol: string) {
   return symbol.trim().toUpperCase().replace(/^KRW-/, "");
 }
@@ -79,7 +107,13 @@ export function findResearch(symbol: string): ResearchMatch {
     title: `${coinName} Four Pillars 리서치 검색`,
     url: `https://research.4pillars.io/en/search?q=${encodeURIComponent(normalized.toLowerCase())}`,
     searchUrl: googleSearchUrl(query),
-    summary: "검증된 직접 아티클 URL은 /api/research 런타임 검색으로 확인합니다.",
+    summary: "Four Pillars 공식 검색 기반 리서치 후보입니다. 전용 콘텐츠 API 없이 검색/AI 합성 경로를 정식 동작으로 사용합니다.",
+    displayMode: "fallback",
+    originalLanguage: "unknown",
+    thesis: null,
+    keyPoints: [],
+    risks: [],
+    confidence: "low",
     query,
     status: "search-fallback",
     source: "search-url-fallback",
@@ -92,7 +126,7 @@ function extractJson(text: string) {
   if (!match) return null;
 
   try {
-    return JSON.parse(match[0]) as Partial<Pick<ResearchMatch, "title" | "url" | "summary">>;
+    return JSON.parse(match[0]) as ResearchCandidate;
   } catch {
     return null;
   }
@@ -107,11 +141,29 @@ function isFourPillarsResearchUrl(url: string) {
   }
 }
 
+function cleanText(value: unknown, maxLength: number) {
+  if (typeof value !== "string") return "";
+  return value.replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function cleanList(value: unknown, maxItems: number, maxLength: number) {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => cleanText(item, maxLength)).filter(Boolean).slice(0, maxItems);
+}
+
+function normalizeConfidence(value: unknown): ResearchConfidence {
+  return value === "high" || value === "medium" || value === "low" ? value : "medium";
+}
+
+function normalizeOriginalLanguage(value: unknown): ResearchMatch["originalLanguage"] {
+  return value === "en" || value === "ko" ? value : "unknown";
+}
+
 function normalizeVerifiedResearch(
   symbol: string,
   query: string,
   source: Exclude<ResearchSource, "search-url-fallback">,
-  candidate: Partial<Pick<ResearchMatch, "title" | "url" | "summary">>,
+  candidate: ResearchCandidate,
 ): ResearchMatch | null {
   const normalized = normalizeSymbol(symbol);
   const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
@@ -125,6 +177,9 @@ function normalizeVerifiedResearch(
     typeof candidate.summary === "string" && candidate.summary.trim()
       ? candidate.summary.trim()
       : "Four Pillars에서 검색된 관련 리서치입니다.";
+  const thesis = cleanText(candidate.thesis, 420) || summary;
+  const keyPoints = cleanList(candidate.keyPoints, 5, 180);
+  const risks = cleanList(candidate.risks, 4, 180);
 
   return {
     symbol: normalized,
@@ -132,6 +187,12 @@ function normalizeVerifiedResearch(
     url,
     searchUrl: googleSearchUrl(query),
     summary,
+    displayMode: "ai-synthesis",
+    originalLanguage: normalizeOriginalLanguage(candidate.originalLanguage ?? candidate.language),
+    thesis,
+    keyPoints,
+    risks,
+    confidence: normalizeConfidence(candidate.confidence),
     query,
     status: "verified",
     source,
@@ -186,7 +247,10 @@ async function findViaLocalBridge(symbol: string, query: string) {
 
   const bridgeToken = process.env.CRYPTO_AI_RELAY_TOKEN?.trim() ?? process.env.FOUR_PILLARS_BRIDGE_TOKEN?.trim();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(process.env.FOUR_PILLARS_BRIDGE_TIMEOUT_MS ?? 180_000));
+  const timeout = setTimeout(
+    () => controller.abort(),
+    boundedTimeoutMs(process.env.FOUR_PILLARS_BRIDGE_TIMEOUT_MS, DEFAULT_BRIDGE_TIMEOUT_MS, 30_000),
+  );
 
   try {
     const res = await fetch(new URL("/api/research", bridgeUrl), {
@@ -195,13 +259,31 @@ async function findViaLocalBridge(symbol: string, query: string) {
         "content-type": "application/json",
         ...(bridgeToken ? { "x-crypto-ai-token": bridgeToken } : {}),
       },
-      body: JSON.stringify({ symbol, query }),
+      body: JSON.stringify({
+        symbol,
+        query,
+        outputContract: {
+          title: "string",
+          url: "direct Four Pillars research article URL",
+          summary: "1 Korean sentence",
+          displayMode: "ai-synthesis",
+          originalLanguage: "en | ko | unknown",
+          thesis: "2-3 Korean sentences explaining the investment thesis",
+          keyPoints: ["3-5 Korean bullet strings"],
+          risks: ["2-4 Korean risk strings"],
+          confidence: "high | medium | low",
+        },
+        constraints: [
+          "Return AI synthesis only; do not include original article body text.",
+          "Prefer direct article URLs and include attribution by URL.",
+        ],
+      }),
       signal: controller.signal,
       cache: "no-store",
     });
     if (!res.ok) return null;
 
-    const payload = (await res.json()) as Partial<ResearchMatch>;
+    const payload = (await res.json()) as ResearchCandidate;
     return normalizeVerifiedResearch(symbol, query, "local-claude-bridge", payload);
   } catch {
     return null;
@@ -216,50 +298,82 @@ async function findViaAnthropicWebSearch(symbol: string, query: string) {
 
   const normalized = normalizeSymbol(symbol);
   const model = process.env.CLAUDE_RESEARCH_MODEL ?? process.env.CLAUDE_MODEL ?? "claude-sonnet-4-5";
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 900,
-      temperature: 0,
-      tools: [
-        {
-          type: "web_search_20250305",
-          name: "web_search",
-          max_uses: 3,
-          allowed_domains: ["4pillars.io", "research.4pillars.io"],
-        },
-      ],
-      system:
-        "Find Four Pillars crypto research articles. Return only compact JSON with title, url, and summary. Prefer direct article pages over generic listing/search pages.",
-      messages: [
-        {
-          role: "user",
-          content: JSON.stringify({
-            task: "Search the web for the most relevant Four Pillars research article for this crypto asset.",
-            symbol: normalized,
-            coinName: coinNameFor(normalized),
-            query,
-            outputShape: { title: "string", url: "https://...", summary: "1 Korean sentence" },
-          }),
-        },
-      ],
-    }),
-    next: { revalidate: 60 * 60 * 6 },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    boundedTimeoutMs(process.env.FOUR_PILLARS_ANTHROPIC_TIMEOUT_MS, DEFAULT_ANTHROPIC_TIMEOUT_MS, 30_000),
+  );
 
-  if (!res.ok) return null;
-  const payload = (await res.json()) as AnthropicPayload;
-  return researchFromAnthropicPayload(symbol, query, payload);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1400,
+        temperature: 0,
+        tools: [
+          {
+            type: "web_search_20250305",
+            name: "web_search",
+            max_uses: 3,
+            allowed_domains: ["4pillars.io", "research.4pillars.io"],
+          },
+        ],
+        system:
+          "Find Four Pillars crypto research articles and return only compact JSON for an AI-synthesized research card. Prefer direct article pages over generic listing/search pages. Do not include original article body text.",
+        messages: [
+          {
+            role: "user",
+            content: JSON.stringify({
+              task: "Search the web for the most relevant Four Pillars research article for this crypto asset.",
+              symbol: normalized,
+              coinName: coinNameFor(normalized),
+              query,
+              outputShape: {
+                title: "string",
+                url: "https://...",
+                summary: "1 Korean sentence",
+                displayMode: "ai-synthesis",
+                originalLanguage: "en | ko | unknown",
+                thesis: "2-3 Korean sentences that explain the article's investment thesis",
+                keyPoints: ["3-5 Korean bullet strings"],
+                risks: ["2-4 Korean risk strings"],
+                confidence: "high | medium | low",
+              },
+              constraints: [
+                "Return AI synthesis only; do not include original article body text.",
+                "Attribute the source by returning the original Four Pillars URL.",
+                "If evidence is thin, set confidence to low and keep claims conservative.",
+              ],
+            }),
+          },
+        ],
+      }),
+      signal: controller.signal,
+      next: { revalidate: 60 * 60 * 6 },
+    });
+
+    if (!res.ok) return null;
+    const payload = (await res.json()) as AnthropicPayload;
+    return researchFromAnthropicPayload(symbol, query, payload);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function findVerifiedResearch(symbol: string): Promise<ResearchMatch> {
   const normalized = normalizeSymbol(symbol);
   const query = buildResearchQuery(normalized);
-  return (await findViaLocalBridge(normalized, query)) ?? (await findViaAnthropicWebSearch(normalized, query)) ?? findResearch(normalized);
+  return (
+    (await findViaLocalBridge(normalized, query)) ??
+    (await findViaAnthropicWebSearch(normalized, query)) ??
+    findResearch(normalized)
+  );
 }

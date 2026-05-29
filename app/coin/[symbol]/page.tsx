@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { CandleChart } from "@/components/CandleChart";
 import { ResearchEmbed } from "@/components/ResearchEmbed";
 import { buildSignal, summarizeRegime } from "@/lib/signal-engine";
-import { findResearch } from "@/lib/four-pillars";
+import { findVerifiedResearch } from "@/lib/four-pillars";
 import { getDayCandles, getTickers, toKrwMarket } from "@/lib/upbit";
 import { DataRow, DataTable } from "@/components/ui/DataTable";
 import { ScoreRing } from "@/components/ui/ScoreRing";
@@ -26,7 +26,7 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
   const btcCandles = await getDayCandles("KRW-BTC", 220);
   const regime = summarizeRegime(btcCandles);
   const signal = buildSignal(ticker, candles, regime.regime);
-  const research = findResearch(signal.symbol);
+  const research = await findVerifiedResearch(signal.symbol);
 
   return (
     <main className="min-h-screen px-5 py-5 sm:px-8" style={{ background: "var(--bg-base)" }}>

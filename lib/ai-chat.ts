@@ -45,7 +45,7 @@ async function buildContext() {
         `  7d: ${m.change7d ?? "n/a"}% | 30d: ${m.change30d ?? "n/a"}%`,
         `  추세: ${m.trendUp ? "EMA20>50>200 상승" : "확인필요"}`,
         `  선정 이유: ${s.rationale.slice(0, 4).join("; ")}`,
-        `  Four Pillars: ${research.url} (외부 검색 링크, 미검증)`,
+        `  Four Pillars: ${research.url} (검색/AI 합성 리서치 후보)`,
       ].join("\n");
     })
     .join("\n\n");
@@ -63,7 +63,7 @@ export async function buildSystemPrompt(): Promise<string> {
 - Upbit 공개 API: 일봉 캔들, 거래대금, 시세
 - 기술적 지표: EMA(20/50/200), RSI(14), MACD(12,26,9), 볼린저밴드(20,2σ), ATR(14)
 - 7일/30일 변동률
-- Four Pillars: 외부 검색 링크 (미검증, 참고용)
+- Four Pillars: 전용 콘텐츠 API 없이 검색/AI 합성 리서치 카드로만 사용합니다. 원문 본문은 제공하지 않습니다.
 - ※ 온체인, 펀딩레이트, 청산, 옵션 스큐 데이터는 없습니다.
 
 ## 현재 시장 레짐
@@ -84,7 +84,7 @@ ${signalSummary}
 5. 한국어로 답변하되, 코인 심볼(BTC, ETH 등)은 영어 그대로 사용합니다.
 6. 답변은 구조적이고 간결하게, 핵심 수치를 포함합니다.
 7. 리스크 관리를 항상 강조합니다.
-8. Four Pillars 리서치는 "외부 검색 결과"로 취급하며, 검증된 자체 리서치가 아님을 명시합니다.`;
+8. Four Pillars 리서치는 검색/AI 합성 기반 보조 리서치 소스로 취급합니다. URL만으로 원문 본문을 추정하지 말고, 확인되지 않은 내용은 "데이터 없음 — 별도 확인 필요"로 표시합니다.`;
 }
 
 // ---------------------------------------------------------------------------

@@ -377,7 +377,7 @@ async function callClaudeDailyReport(signals: CoinSignal[], regime: MarketRegime
       max_tokens: 1800,
       temperature: 0.2,
       system:
-        "You are a technical-indicator-based crypto research tool for KRW Upbit markets. You only have access to Upbit public API data (candles, volume, price) and computed indicators (EMA, RSI, MACD, Bollinger Bands, ATR). You do NOT have on-chain, funding rate, liquidation, or options data. Return strict JSON only. Do not give order execution instructions. Treat Four Pillars links as external search context, not verified research.",
+        "You are a technical-indicator-based crypto research tool for KRW Upbit markets. You only have access to Upbit public API data (candles, volume, price) and computed indicators (EMA, RSI, MACD, Bollinger Bands, ATR). You do NOT have on-chain, funding rate, liquidation, or options data. Return strict JSON only. Do not give order execution instructions. Treat Four Pillars as a search/AI-synthesized research source, and do not infer or reproduce original article body text.",
       messages: [
         {
           role: "user",

@@ -12,6 +12,10 @@
   --rule: #262a30;
 
   /* Text */
+  --font-display: var(--font-geist-sans);
+  --font-heading: var(--font-geist-sans);
+  --font-body: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --text-primary: #f2f3f5;
   --text-secondary: #9aa1ad;
   --text-muted: #6b727e;
@@ -88,6 +92,15 @@ a {
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes ticker-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
 }
 
 .skeleton {

@@ -17,6 +17,8 @@ type ChatRequest = {
 type ResearchRequest = {
   symbol?: string;
   query?: string;
+  outputContract?: unknown;
+  constraints?: string[];
 };
 
 const server = createServer(async (request, response) => {
@@ -214,14 +216,28 @@ function streamClaudeCliChat(
 // Research handler — single-shot Claude CLI for Four Pillars lookup
 // ---------------------------------------------------------------------------
 
+type ResearchResponse = {
+  title: string;
+  url: string;
+  summary: string;
+  displayMode?: "ai-synthesis";
+  originalLanguage?: "en" | "ko" | "unknown";
+  thesis?: string;
+  keyPoints?: string[];
+  risks?: string[];
+  confidence?: "high" | "medium" | "low";
+};
+
 function searchWithClaudeCli(symbol: string, query: string) {
-  return new Promise<{ title: string; url: string; summary: string }>((resolve, reject) => {
+  return new Promise<ResearchResponse>((resolve, reject) => {
     const prompt = [
       `Symbol: ${symbol}`,
       `Search query: ${query}`,
       "Find the best matching Four Pillars research article for this crypto asset.",
       "Use web search/fetch. Prefer direct article URLs under research.4pillars.io/en/research over listing pages.",
-      'Return strict JSON only: {"title":"...","url":"https://...","summary":"Korean one sentence"}',
+      "Return an AI-synthesized research card only. Do not reproduce original article body text.",
+      "Use thesis/keyPoints/risks for the synthesized interpretation and keep claims conservative when evidence is thin.",
+      'Return strict JSON only: {"title":"...","url":"https://...","summary":"Korean one sentence","displayMode":"ai-synthesis","originalLanguage":"en|ko|unknown","thesis":"...","keyPoints":["..."],"risks":["..."],"confidence":"high|medium|low"}',
     ].join("\n");
 
     let settled = false;
@@ -279,7 +295,7 @@ function searchWithClaudeCli(symbol: string, query: string) {
       try {
         const parsed = extractResearchJson(stdout);
         if (!parsed.title || !parsed.url || !parsed.summary) throw new Error("claude_response_incomplete_json");
-        resolve({ title: parsed.title, url: parsed.url, summary: parsed.summary });
+        resolve(parsed);
       } catch (error) {
         reject(error);
       }
@@ -297,7 +313,7 @@ function searchWithClaudeCli(symbol: string, query: string) {
 function extractResearchJson(text: string) {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("claude_response_missing_json");
-  return JSON.parse(match[0]) as { title?: string; url?: string; summary?: string };
+  return JSON.parse(match[0]) as ResearchResponse;
 }
 
 // ---------------------------------------------------------------------------

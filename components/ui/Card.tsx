@@ -6,11 +6,13 @@ type CardProps = {
   glow?: "bull" | "bear" | false;
   hover?: boolean;
   flush?: boolean;
+  id?: string;
 };
 
-export function Card({ children, className = "", glow = false, hover = true, flush = false }: CardProps) {
+export function Card({ children, className = "", glow = false, hover = true, flush = false, id }: CardProps) {
   return (
     <div
+      id={id}
       className={[
         "rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)]",
         "transition-colors",
