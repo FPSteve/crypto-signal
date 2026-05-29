@@ -62,7 +62,7 @@ export default async function Home() {
           </AnimatedHeader>
 
           {leadSignal && (
-            <Card hover={false} className="mb-5 overflow-hidden">
+            <Card hover={false} className="mb-5 overflow-hidden rounded-[var(--radius-lg)]">
               <article className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_9rem]">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -83,7 +83,7 @@ export default async function Home() {
                       #1 · SCORE {leadSignal.score} · {leadSignal.name ?? leadSignal.market}
                     </div>
                   </div>
-                  <p className="mt-5 max-w-4xl font-[family-name:var(--font-heading)] text-2xl font-bold leading-snug text-[var(--text-primary)] sm:text-3xl">
+                  <p className="mt-5 max-w-4xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-snug text-[var(--text-primary)] sm:text-4xl">
                     {leadSignal.thesis}
                   </p>
                   <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-[family-name:var(--font-mono)] text-xs text-[var(--text-muted)]">
@@ -95,7 +95,7 @@ export default async function Home() {
 
                 <Link
                   href={`/coin/${leadSignal.symbol}`}
-                  className="flex h-24 items-center justify-between border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.04] lg:h-full lg:flex-col lg:items-start"
+                  className="flex h-24 items-center justify-between rounded-[var(--radius-md)] border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.04] lg:h-full lg:flex-col lg:items-start"
                 >
                   <span>Open Detail</span>
                   <ArrowUpRight size={18} />
@@ -112,7 +112,7 @@ export default async function Home() {
                   <AnimatedSignalItem key={signal.market}>
                     <Link
                       href={`/coin/${signal.symbol}`}
-                      className="group block h-full border border-[var(--rule)] bg-[var(--bg-card)] transition-colors hover:border-white/20 hover:bg-[var(--bg-card-hover)]"
+                      className="group block h-full overflow-hidden rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)] transition-colors hover:border-white/20 hover:bg-[var(--bg-card-hover)]"
                       style={{ transitionDuration: "var(--duration-fast)" }}
                     >
                       <article className="flex h-full min-h-[20rem] flex-col p-4 sm:p-5">
@@ -138,7 +138,7 @@ export default async function Home() {
                           </Badge>
                         </div>
 
-                        <p className="mt-4 line-clamp-4 font-[family-name:var(--font-heading)] text-lg font-bold leading-snug text-[var(--text-primary)]">
+                        <p className="mt-4 line-clamp-4 font-[family-name:var(--font-display)] text-base font-semibold leading-snug text-[var(--text-primary)] sm:text-lg">
                           {signal.thesis}
                         </p>
 
@@ -172,7 +172,7 @@ export default async function Home() {
         </div>
 
         <AnimatedSidebar>
-          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start">
             <Card hover={false}>
               <CardHeader>
                 <SectionKicker>Buckets</SectionKicker>

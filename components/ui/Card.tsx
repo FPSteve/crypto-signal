@@ -14,7 +14,7 @@ export function Card({ children, className = "", glow = false, hover = true, flu
     <div
       id={id}
       className={[
-        "rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)]",
+        "min-h-[var(--card-min-h)] rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)]",
         "transition-colors",
         flush && "overflow-hidden",
         hover && "hover:bg-[var(--bg-card-hover)] hover:border-white/15",

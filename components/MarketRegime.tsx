@@ -29,7 +29,7 @@ export function MarketRegime({ regime }: MarketRegimeProps) {
               <SectionKicker>Market Regime</SectionKicker>
               <Badge variant={isBear ? "bear" : "bull"}>{regime.label}</Badge>
             </div>
-            <h2 className="mt-1.5 text-2xl font-bold leading-tight tracking-[-0.02em] text-[var(--text-primary)]">
+            <h2 className="mt-1.5 font-[family-name:var(--font-display)] text-2xl font-semibold leading-tight text-[var(--text-primary)]">
               BTC 기준 {regime.label}
             </h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-[var(--text-secondary)]">{regime.note}</p>

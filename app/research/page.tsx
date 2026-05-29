@@ -42,7 +42,7 @@ export default async function ResearchPage() {
             </p>
           </div>
 
-          <div className="border border-[var(--rule)] bg-[var(--bg-card)] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-[var(--rule)] bg-[var(--bg-card)] p-5">
             <div className="flex flex-wrap gap-2">
               <Badge variant={report.engine === "claude" ? "bull" : "outline"}>{report.engine}</Badge>
               <Badge variant="brand">{report.model}</Badge>
@@ -76,7 +76,7 @@ export default async function ResearchPage() {
                   </h2>
                   <ScoreTag score={lead.signal.score} className="mb-1" />
                 </div>
-                <p className="mt-5 max-w-4xl font-[family-name:var(--font-heading)] text-2xl font-bold leading-snug text-[var(--text-primary)] sm:text-3xl">
+                <p className="mt-5 max-w-4xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-snug text-[var(--text-primary)] sm:text-4xl">
                   {lead.signal.thesis}
                 </p>
                 <div className="mt-5 grid gap-3 text-sm text-[var(--text-secondary)] sm:grid-cols-3">
@@ -94,7 +94,7 @@ export default async function ResearchPage() {
 
               <Link
                 href={lead.research.searchUrl}
-                className="flex h-28 items-center justify-between border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.04] lg:h-full lg:flex-col lg:items-start"
+                className="flex h-28 items-center justify-between rounded-[var(--radius-md)] border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.04] lg:h-full lg:flex-col lg:items-start"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -163,7 +163,7 @@ export default async function ResearchPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-[family-name:var(--font-mono)] text-xs text-[var(--text-muted)]">{signal.name ?? signal.market}</p>
-                    <h3 className="mt-2 text-3xl font-bold text-[var(--text-primary)]">{signal.symbol}</h3>
+                    <h3 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold text-[var(--text-primary)]">{signal.symbol}</h3>
                   </div>
                   <Badge variant={research.displayMode === "ai-synthesis" ? "bull" : "outline"}>{research.displayMode}</Badge>
                 </div>
@@ -178,7 +178,7 @@ export default async function ResearchPage() {
                 <div className="mt-auto flex flex-wrap gap-3 pt-5">
                   <Link
                     href={`/coin/${signal.symbol}#research`}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--text-primary)] hover:text-white"
+                    className="editorial-link inline-flex items-center gap-1 text-sm font-semibold text-[var(--text-primary)] hover:text-white"
                   >
                     Detail
                     <ArrowUpRight size={14} />
@@ -187,7 +187,7 @@ export default async function ResearchPage() {
                     href={research.searchUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--accent-brand)] hover:text-white"
+                    className="editorial-link inline-flex items-center gap-1 text-sm font-semibold text-[var(--accent-brand)] hover:text-white"
                   >
                     Search
                     <ArrowUpRight size={14} />

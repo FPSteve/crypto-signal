@@ -68,7 +68,7 @@ export default async function PricesPage() {
               </p>
             </div>
 
-            <div className="border border-[var(--rule)] bg-[var(--bg-card)] p-5">
+            <div className="rounded-[var(--radius-lg)] border border-[var(--rule)] bg-[var(--bg-card)] p-5">
               <div className="flex flex-wrap gap-2">
                 <Badge variant="brand">Top volume</Badge>
                 <Badge variant={averageChange >= 0 ? "bull" : "bear"}>{formatSignedPercentFromRatio(averageChange)}</Badge>
@@ -84,7 +84,7 @@ export default async function PricesPage() {
 
       <section className="mx-auto grid max-w-7xl gap-4 px-5 py-6 sm:px-8 lg:grid-cols-3">
         {summaryItems.map((item) => (
-          <div key={item.label} className="border border-[var(--rule)] bg-[var(--bg-card)] p-5">
+          <div key={item.label} className="min-h-[var(--card-min-h)] rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)] p-5">
             <div className="flex items-center gap-2 text-[var(--text-muted)]">
               <item.icon size={16} />
               <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em]">{item.label}</p>

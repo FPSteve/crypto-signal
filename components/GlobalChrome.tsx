@@ -52,8 +52,8 @@ export function GlobalChrome({ tickers }: { tickers: ChromeTicker[] }) {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--rule)] bg-[var(--bg-base)]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
+    <header className="sticky top-0 z-50 border-b border-[var(--rule)] bg-[var(--bg-card)]/95 backdrop-blur">
+      <div className="mx-auto flex h-[62px] max-w-[1920px] items-center justify-between gap-4 px-6">
         <Link href="/" className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-[var(--text-primary)] sm:text-3xl">
           Signal Hub
         </Link>
@@ -90,7 +90,7 @@ export function GlobalChrome({ tickers }: { tickers: ChromeTicker[] }) {
 
         <button
           type="button"
-          className="inline-flex h-9 w-9 items-center justify-center border border-[var(--rule)] text-[var(--text-primary)] md:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--rule)] text-[var(--text-primary)] md:hidden"
           onClick={() => setMobileOpen((open) => !open)}
           aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
           aria-expanded={mobileOpen}
@@ -100,7 +100,7 @@ export function GlobalChrome({ tickers }: { tickers: ChromeTicker[] }) {
       </div>
 
       {mobileOpen && (
-        <nav className="border-t border-[var(--rule)] px-5 py-2 md:hidden" aria-label="Mobile primary">
+        <nav className="border-t border-[var(--rule)] px-6 py-2 md:hidden" aria-label="Mobile primary">
           {navItems.map((item) => {
             const active = activeTab === item.match;
             return (
@@ -122,7 +122,7 @@ export function GlobalChrome({ tickers }: { tickers: ChromeTicker[] }) {
       )}
 
       <div className="border-t border-[var(--rule)] bg-[var(--bg-raised)]/70">
-        <div className="mx-auto max-w-7xl overflow-x-auto px-5 sm:px-8">
+        <div className="mx-auto max-w-[1920px] overflow-x-auto px-6">
           <div className="ticker-track flex min-w-max items-center gap-7 py-2 md:animate-[ticker-marquee_42s_linear_infinite]">
             {[...tickerTape, ...tickerTape].map((ticker, index) => {
               const symbol = symbolFromMarket(ticker.market);

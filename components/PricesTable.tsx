@@ -83,9 +83,9 @@ export function PricesTable({ rows }: { rows: PriceTableRow[] }) {
   };
 
   return (
-    <section className="border border-[var(--rule)] bg-[var(--bg-card)]">
+    <section className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--rule)] bg-[var(--bg-card)]">
       <div className="grid gap-3 border-b border-[var(--rule)] p-4 lg:grid-cols-[1fr_auto] lg:items-center">
-        <label className="flex min-h-11 items-center gap-3 border border-[var(--rule)] bg-[var(--bg-base)] px-3 text-sm text-[var(--text-secondary)]">
+        <label className="flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-base)] px-3 text-sm text-[var(--text-secondary)]">
           <Search size={16} className="shrink-0 text-[var(--text-muted)]" />
           <input
             value={query}
@@ -105,7 +105,7 @@ export function PricesTable({ rows }: { rows: PriceTableRow[] }) {
                 type="button"
                 aria-pressed={active}
                 onClick={() => handleSort(option.key)}
-                className={`inline-flex h-10 items-center gap-1.5 border px-3 text-xs font-semibold transition-colors ${
+                className={`inline-flex h-10 items-center gap-1.5 rounded-[var(--radius-sm)] border px-3 text-xs font-semibold transition-colors ${
                   active
                     ? "border-[var(--text-primary)] text-[var(--text-primary)]"
                     : "border-[var(--rule)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
