@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/FadeIn";
-import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 
 export function AnimatedHeader({ children }: { children: ReactNode }) {
   return <FadeIn delay={0}>{children}</FadeIn>;
@@ -11,7 +10,6 @@ export function AnimatedHeader({ children }: { children: ReactNode }) {
 export function AnimatedRegimeSection({ children }: { children: ReactNode }) {
   return (
     <div className="relative">
-      <AnimatedBackground />
       <FadeIn delay={0.1}>{children}</FadeIn>
     </div>
   );

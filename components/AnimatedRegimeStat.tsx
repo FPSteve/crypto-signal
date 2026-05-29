@@ -9,8 +9,8 @@ type AnimatedRegimeStatProps = {
 
 export function AnimatedRegimeStat({ label, value }: AnimatedRegimeStatProps) {
   return (
-    <div className="min-w-[5.5rem] rounded-[var(--radius-sm)] bg-white/[0.03] px-4 py-3">
-      <p className="text-[var(--text-muted)] text-xs">{label}</p>
+    <div className="min-w-[5.5rem] px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] font-[family-name:var(--font-geist-mono)]">{label}</p>
       <p className="mt-1 font-semibold tabular-nums text-[var(--text-primary)] font-[family-name:var(--font-geist-mono)]">
         {typeof value === "number" ? (
           <>

@@ -5,11 +5,13 @@ import { ResearchEmbed } from "@/components/ResearchEmbed";
 import { buildSignal, summarizeRegime } from "@/lib/signal-engine";
 import { findResearch } from "@/lib/four-pillars";
 import { getDayCandles, getTickers, toKrwMarket } from "@/lib/upbit";
+import { DataRow, DataTable } from "@/components/ui/DataTable";
+import { ScoreRing } from "@/components/ui/ScoreRing";
+import { SectionKicker } from "@/components/ui/SectionKicker";
 import {
   AnimatedCoinHeader,
   AnimatedCoinChart,
   AnimatedCoinSidebar,
-  AnimatedScore,
   AnimatedPrice,
   AnimatedChange,
 } from "@/components/CoinDetailAnimations";
@@ -27,32 +29,39 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
   const research = findResearch(signal.symbol);
 
   return (
-    <main className="min-h-screen bg-[#080a0d] px-5 py-5 sm:px-8">
+    <main className="min-h-screen px-5 py-5 sm:px-8" style={{ background: "var(--bg-base)" }}>
       <div className="mx-auto max-w-7xl">
         <AnimatedCoinHeader>
-        <header className="flex flex-col gap-5 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-6 border-b border-[var(--rule)] pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-white">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)] transition hover:text-white">
               <ArrowLeft size={16} />
               대시보드
             </Link>
-            <h1 className="mt-4 text-4xl font-semibold text-white">{signal.symbol}</h1>
-            <p className="mt-2 text-sm text-gray-500">{market} 차트, EMA, RSI, MACD, BB, ATR, Four Pillars 리서치 후보</p>
+            <SectionKicker className="mt-5">Coin Detail</SectionKicker>
+            <h1 className="mt-2 text-5xl font-bold leading-none tracking-[-0.02em] text-[var(--text-primary)] sm:text-7xl">
+              {signal.symbol}
+            </h1>
+            <p className="mt-3 text-sm text-[var(--text-secondary)]">{market} 차트, EMA, RSI, MACD, BB, ATR, Four Pillars 리서치 후보</p>
           </div>
-          <div className="grid grid-cols-3 gap-5 text-sm">
-            <div>
-              <p className="text-gray-500">Score</p>
-              <p className="mt-1 text-2xl font-semibold text-white"><AnimatedScore value={signal.score} /></p>
+          <div className="grid min-w-full grid-cols-1 divide-y divide-[var(--rule)] border-y border-[var(--rule)] text-sm sm:grid-cols-3 sm:divide-x sm:divide-y-0 lg:min-w-[28rem]">
+            <div className="px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] font-[family-name:var(--font-geist-mono)]">Score</p>
+              <div className="mt-2">
+                <ScoreRing score={signal.score} size={58} />
+              </div>
             </div>
-            <div>
-              <p className="text-gray-500">24h</p>
-              <p className={signal.change24h >= 0 ? "mt-1 text-2xl font-semibold text-emerald-400" : "mt-1 text-2xl font-semibold text-red-400"}>
+            <div className="px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] font-[family-name:var(--font-geist-mono)]">24h</p>
+              <p className={signal.change24h >= 0 ? "mt-2 text-2xl font-semibold text-[var(--accent-bull)]" : "mt-2 text-2xl font-semibold text-[var(--accent-bear)]"}>
                 <AnimatedChange value={signal.change24h} />
               </p>
             </div>
-            <div>
-              <p className="text-gray-500">Price</p>
-              <p className="mt-1 text-2xl font-semibold text-white"><AnimatedPrice value={signal.price} /></p>
+            <div className="px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] font-[family-name:var(--font-geist-mono)]">Price</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--text-primary)] font-[family-name:var(--font-geist-mono)]">
+                <AnimatedPrice value={signal.price} />
+              </p>
             </div>
           </div>
         </header>
@@ -62,38 +71,34 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
           <AnimatedCoinChart>
           <div>
             <CandleChart candles={candles} />
-            <div className="mt-4 flex gap-4 text-xs text-gray-500">
-              <span className="text-amber-400">EMA20</span>
-              <span className="text-sky-400">EMA50</span>
+            <div className="mt-4 flex gap-4 text-xs text-[var(--text-muted)]">
+              <span className="text-[var(--accent-brand)]">EMA20</span>
+              <span className="text-[var(--text-muted)]">EMA50</span>
               <span>일봉 기준</span>
             </div>
           </div>
           </AnimatedCoinChart>
           <AnimatedCoinSidebar>
           <aside>
-            <section className="border-b border-white/10 pb-6">
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Logic</p>
-              <h2 className="mt-2 text-xl font-semibold text-white">{signal.thesis}</h2>
-              <div className="mt-5 grid gap-3">
+            <section className="border-b border-[var(--rule)] pb-6">
+              <SectionKicker>Logic</SectionKicker>
+              <h2 className="mt-3 text-2xl font-bold leading-tight tracking-[-0.02em] text-[var(--text-primary)]">
+                {signal.thesis}
+              </h2>
+              <DataTable className="mt-5">
                 {signal.signals.map((item) => (
-                  <div key={item} className="flex justify-between border-b border-white/10 pb-3 text-sm">
-                    <span className="text-gray-500">Signal</span>
-                    <span className="text-gray-200">{item}</span>
-                  </div>
+                  <DataRow key={item} label="Signal" value={item} />
                 ))}
-                <div className="flex justify-between border-b border-white/10 pb-3 text-sm">
-                  <span className="text-gray-500">손절 기준</span>
-                  <span className="text-gray-200">{Math.round(signal.stopLoss).toLocaleString()} KRW</span>
-                </div>
-              </div>
+                <DataRow label="손절 기준" value={`${Math.round(signal.stopLoss).toLocaleString()} KRW`} />
+              </DataTable>
             </section>
             {signal.rationale.length > 0 && (
-              <section className="border-b border-white/10 py-6">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500">왜 이 종목인가</p>
+              <section className="border-b border-[var(--rule)] py-6">
+                <SectionKicker>왜 이 종목인가</SectionKicker>
                 <ul className="mt-3 space-y-2">
                   {signal.rationale.map((reason) => (
-                    <li key={reason} className="flex items-start gap-2 text-sm text-gray-300">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                    <li key={reason} className="flex items-start gap-2 text-sm leading-6 text-[var(--text-secondary)]">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-brand)]" />
                       {reason}
                     </li>
                   ))}

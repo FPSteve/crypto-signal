@@ -3,14 +3,18 @@
 import { motion } from "framer-motion";
 
 export function ScoreRing({ score, size = 56 }: { score: number; size?: number }) {
-  const maxScore = 10;
+  const maxScore = score > 10 ? 100 : 10;
   const radius = (size - 6) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(score / maxScore, 1);
   const dashOffset = circumference * (1 - progress);
 
   const color =
-    score >= 7 ? "var(--accent-bull)" : score >= 4 ? "var(--accent-blue)" : "var(--accent-bear)";
+    score >= (maxScore === 100 ? 70 : 7)
+      ? "var(--accent-bull)"
+      : score >= (maxScore === 100 ? 40 : 4)
+        ? "var(--accent-brand)"
+        : "var(--accent-bear)";
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>

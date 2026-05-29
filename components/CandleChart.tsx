@@ -19,8 +19,8 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     const chart = createChart(containerRef.current, {
       height,
       layout: {
-        background: { type: ColorType.Solid, color: "#0b0d10" },
-        textColor: "#9ca3af",
+        background: { type: ColorType.Solid, color: "#16181c" },
+        textColor: "#9aa1ad",
       },
       grid: {
         vertLines: { color: "rgba(255,255,255,0.04)" },
@@ -39,17 +39,17 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#dc2626",
+      upColor: "#17ba7c",
+      downColor: "#f0384a",
       borderVisible: false,
-      wickUpColor: "#22c55e",
-      wickDownColor: "#ef4444",
+      wickUpColor: "#17ba7c",
+      wickDownColor: "#f0384a",
     });
 
     candleSeries.setData(candles.map(({ time, open, high, low, close }) => ({ time, open, high, low, close })));
 
     const ema20 = chart.addSeries(LineSeries, {
-      color: "#f59e0b",
+      color: "#7b5cff",
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: false,
@@ -57,7 +57,7 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     ema20.setData(ema(candles, 20));
 
     const ema50 = chart.addSeries(LineSeries, {
-      color: "#38bdf8",
+      color: "#6b727e",
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: false,
@@ -77,5 +77,5 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     };
   }, [candles, height]);
 
-  return <div ref={containerRef} className="h-[420px] w-full overflow-hidden rounded-md border border-white/10 bg-[#0b0d10]" />;
+  return <div ref={containerRef} className="h-[420px] w-full overflow-hidden rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)]" />;
 }

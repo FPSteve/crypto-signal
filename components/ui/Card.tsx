@@ -5,15 +5,17 @@ type CardProps = {
   className?: string;
   glow?: "bull" | "bear" | false;
   hover?: boolean;
+  flush?: boolean;
 };
 
-export function Card({ children, className = "", glow = false, hover = true }: CardProps) {
+export function Card({ children, className = "", glow = false, hover = true, flush = false }: CardProps) {
   return (
     <div
       className={[
-        "rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-card)]",
-        "backdrop-blur-sm transition-all",
-        hover && "hover:bg-[var(--bg-card-hover)] hover:border-white/10 hover:shadow-[var(--shadow-md)]",
+        "rounded-[var(--radius-md)] border border-[var(--rule)] bg-[var(--bg-card)]",
+        "transition-colors",
+        flush && "overflow-hidden",
+        hover && "hover:bg-[var(--bg-card-hover)] hover:border-white/15",
         glow === "bull" && "glow-bull",
         glow === "bear" && "glow-bear",
         className,
@@ -28,7 +30,7 @@ export function Card({ children, className = "", glow = false, hover = true }: C
 }
 
 export function CardHeader({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`px-5 py-4 border-b border-[var(--glass-border)] ${className}`}>{children}</div>;
+  return <div className={`border-b border-[var(--rule)] px-5 py-4 ${className}`}>{children}</div>;
 }
 
 export function CardBody({ children, className = "" }: { children: ReactNode; className?: string }) {

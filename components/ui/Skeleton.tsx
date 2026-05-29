@@ -4,7 +4,7 @@ export function Skeleton({ className = "", width, height }: { className?: string
 
 export function SignalCardSkeleton() {
   return (
-    <div className="flex gap-4 border-b border-[var(--glass-border)] p-5">
+    <div className="flex gap-4 border-b border-[var(--rule)] p-5">
       <div className="flex flex-col gap-2">
         <Skeleton width={20} height={14} />
         <Skeleton width={60} height={24} />

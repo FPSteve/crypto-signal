@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 
-type BadgeVariant = "default" | "bull" | "bear" | "blue" | "outline";
+type BadgeVariant = "default" | "brand" | "bull" | "bear" | "outline";
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-white/[0.06] text-[var(--text-secondary)] border-transparent",
+  default: "bg-transparent text-[var(--text-secondary)] border-[var(--rule)]",
+  brand: "bg-[var(--accent-brand-bg)] text-[var(--accent-brand)] border-[var(--accent-brand)]/20",
   bull: "bg-[var(--accent-bull-bg)] text-[var(--accent-bull)] border-[var(--accent-bull)]/20",
   bear: "bg-[var(--accent-bear-bg)] text-[var(--accent-bear)] border-[var(--accent-bear)]/20",
-  blue: "bg-[var(--accent-blue-bg)] text-[var(--accent-blue)] border-[var(--accent-blue)]/20",
   outline: "bg-transparent text-[var(--text-secondary)] border-white/10",
 };
 
@@ -21,7 +21,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium tracking-wide ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-[var(--radius-sm)] border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${variantStyles[variant]} ${className}`}
     >
       {children}
     </span>
