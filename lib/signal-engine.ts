@@ -1,4 +1,4 @@
-import { ema, percentChange, rsi } from "./indicators";
+import { ema, percentChange, rsi, macd, bollingerBands, atr, type MACDResult, type BollingerResult } from "./indicators";
 import { findResearch } from "./four-pillars";
 import type { CandlePoint, UpbitTicker } from "./upbit";
 import { toSymbol } from "./upbit";
@@ -14,6 +14,9 @@ export type SignalMetrics = {
   change30d: number | null;
   trendUp: boolean;
   above20: boolean;
+  macd: MACDResult | null;
+  bollinger: BollingerResult | null;
+  atr14: number | null;
 };
 
 export type CoinSignal = {
@@ -27,6 +30,7 @@ export type CoinSignal = {
   volumeKrw24h: number;
   stopLoss: number;
   thesis: string;
+  rationale: string[];
   signals: string[];
   metrics: SignalMetrics;
 };
@@ -59,47 +63,150 @@ function classifyBucket(change7d: number | null, rsi14: number | null, trendUp: 
   return "swing";
 }
 
-export function buildSignal(ticker: UpbitTicker & { name?: string }, candles: CandlePoint[]): CoinSignal {
+// Regime-adaptive thresholds
+type RegimeConfig = {
+  rsiOverbought: number;
+  rsiHealthyMin: number;
+  rsiHealthyMax: number;
+  trendBonus: number;
+  momentumWeight: number;
+};
+
+const regimeConfigs: Record<"bullish" | "neutral" | "bearish", RegimeConfig> = {
+  bullish:  { rsiOverbought: 80, rsiHealthyMin: 40, rsiHealthyMax: 72, trendBonus: 25, momentumWeight: 1.2 },
+  neutral:  { rsiOverbought: 75, rsiHealthyMin: 45, rsiHealthyMax: 68, trendBonus: 20, momentumWeight: 1.0 },
+  bearish:  { rsiOverbought: 65, rsiHealthyMin: 35, rsiHealthyMax: 60, trendBonus: 10, momentumWeight: 0.7 },
+};
+
+export function buildSignal(
+  ticker: UpbitTicker & { name?: string },
+  candles: CandlePoint[],
+  regime: "bullish" | "neutral" | "bearish" = "neutral",
+): CoinSignal {
+  const cfg = regimeConfigs[regime];
+  const sym = toSymbol(ticker.market);
+
   const ema20 = ema(candles, 20).at(-1)?.value ?? ticker.trade_price;
   const ema50 = ema(candles, 50).at(-1)?.value ?? ticker.trade_price;
   const ema200 = ema(candles, 200).at(-1)?.value ?? ema50;
   const rsi14 = rsi(candles);
   const change7d = percentChange(candles, 7);
   const change30d = percentChange(candles, 30);
+  const macdResult = macd(candles);
+  const bbResult = bollingerBands(candles);
+  const atr14 = atr(candles);
   const trendUp = ema20 > ema50 && ema50 >= ema200;
   const above20 = ticker.trade_price > ema20;
-  const volumeScore = Math.min(20, Math.log10(Math.max(ticker.acc_trade_price_24h, 1)) * 2);
 
+  // --- Scoring (regime-adaptive) ---
+  const volumeScore = Math.min(20, Math.log10(Math.max(ticker.acc_trade_price_24h, 1)) * 2);
   let score = 20 + volumeScore;
-  if (above20) score += 10;
-  if (trendUp) score += 20;
-  if ((change7d ?? 0) > 5) score += 12;
-  if ((change30d ?? 0) > 10) score += 10;
-  if ((rsi14 ?? 50) >= 45 && (rsi14 ?? 50) <= 68) score += 8;
-  if ((rsi14 ?? 50) > 78) score -= 15;
+
+  const rationale: string[] = [];
+
+  if (above20) {
+    score += 10;
+    rationale.push(`가격이 EMA20(${Math.round(ema20).toLocaleString()}) 위에 위치`);
+  }
+  if (trendUp) {
+    score += cfg.trendBonus;
+    rationale.push("EMA 20>50>200 상승 구조 확인");
+  }
+  if ((change7d ?? 0) > 5) {
+    score += Math.round(12 * cfg.momentumWeight);
+    rationale.push(`7일 모멘텀 +${change7d}%로 강세`);
+  }
+  if ((change30d ?? 0) > 10) {
+    score += Math.round(10 * cfg.momentumWeight);
+    rationale.push(`30일 수익률 +${change30d}%`);
+  }
+
+  // RSI zone scoring
+  const rsiVal = rsi14 ?? 50;
+  if (rsiVal >= cfg.rsiHealthyMin && rsiVal <= cfg.rsiHealthyMax) {
+    score += 8;
+    rationale.push(`RSI ${rsi14}이 건강 구간(${cfg.rsiHealthyMin}-${cfg.rsiHealthyMax})`);
+  }
+  if (rsiVal > cfg.rsiOverbought) {
+    score -= 15;
+    rationale.push(`RSI ${rsi14}이 과열 기준(${cfg.rsiOverbought}) 초과 — 주의`);
+  }
+
+  // MACD scoring
+  if (macdResult) {
+    if (macdResult.trend === "bullish") {
+      score += 8;
+      rationale.push("MACD 히스토그램 확장 — 모멘텀 강화");
+    } else if (macdResult.trend === "bearish") {
+      score -= 5;
+      rationale.push("MACD 히스토그램 수축 — 모멘텀 약화");
+    }
+    if (macdResult.macd > 0 && macdResult.signal < 0) {
+      rationale.push("MACD 골든크로스 진행 중");
+    }
+  }
+
+  // Bollinger Bands scoring
+  if (bbResult) {
+    if (bbResult.percentB > 1.0) {
+      score -= 8;
+      rationale.push(`볼린저 상단 돌파(%B=${bbResult.percentB.toFixed(2)}) — 과열 경고`);
+    } else if (bbResult.percentB < 0.0) {
+      score -= 3;
+      rationale.push(`볼린저 하단 이탈(%B=${bbResult.percentB.toFixed(2)}) — 과매도`);
+    } else if (bbResult.percentB >= 0.4 && bbResult.percentB <= 0.7) {
+      score += 4;
+      rationale.push("볼린저 밴드 중간 구간 — 안정적 위치");
+    }
+    if (bbResult.bandwidth < 3) {
+      rationale.push(`볼린저 밴드폭 ${bbResult.bandwidth}%로 수축 — 변동성 확대 가능성`);
+    }
+  }
+
+  // ATR-based stop loss (2x ATR below close)
+  const close = ticker.trade_price;
+  const atrStopLoss = atr14 ? close - 2 * atr14 : Math.min(ema20, ticker.low_price);
+  const stopLoss = atr14 ? atrStopLoss : Math.min(ema20, ticker.low_price);
+
+  if (atr14) {
+    rationale.push(`ATR(14)=${atr14.toLocaleString()} 기반 손절가: ${Math.round(atrStopLoss).toLocaleString()}`);
+  }
+
+  // Volume rationale
+  if (ticker.acc_trade_price_24h > 50_000_000_000) {
+    rationale.push(`24h 거래대금 ${(ticker.acc_trade_price_24h / 1_000_000_000).toFixed(0)}십억원 — 유동성 양호`);
+  }
 
   const bucket = classifyBucket(change7d, rsi14, trendUp);
-  const stopLoss = Math.min(ema20, ticker.low_price);
-  const metrics = {
-    ema20,
-    ema50,
-    ema200,
-    rsi14,
-    change7d,
-    change30d,
-    trendUp,
-    above20,
+  const metrics: SignalMetrics = {
+    ema20, ema50, ema200, rsi14, change7d, change30d,
+    trendUp, above20,
+    macd: macdResult,
+    bollinger: bbResult,
+    atr14,
   };
+
   const signals = [
     `24h ${ticker.signed_change_rate >= 0 ? "+" : ""}${(ticker.signed_change_rate * 100).toFixed(1)}%`,
     `7d ${change7d === null ? "n/a" : `${change7d > 0 ? "+" : ""}${change7d}%`}`,
     `RSI ${rsi14 ?? "n/a"}`,
+    macdResult ? `MACD ${macdResult.trend === "bullish" ? "▲" : macdResult.trend === "bearish" ? "▼" : "—"}` : null,
+    bbResult ? `BB %B ${bbResult.percentB.toFixed(2)}` : null,
+    atr14 ? `ATR ${atr14.toLocaleString()}` : null,
     trendUp ? "EMA 20>50 구조" : above20 ? "가격 EMA20 상회" : "추세 확인 필요",
-  ];
+  ].filter((s): s is string => s !== null);
+
+  // Build thesis from top rationale
+  const topReasons = rationale.slice(0, 3).join(". ");
+  const thesis = rationale.length > 0
+    ? `${sym}: ${topReasons}.`
+    : trendUp
+      ? `${sym}는 단기 EMA가 중기선 위에 있어 포지션 후보로 추적할 만합니다.`
+      : `${sym}는 거래대금과 단기 모멘텀을 우선 확인하는 전술 후보입니다.`;
 
   return {
     market: ticker.market,
-    symbol: toSymbol(ticker.market),
+    symbol: sym,
     name: ticker.name,
     bucket,
     score: Math.max(0, Math.min(100, Math.round(score))),
@@ -107,10 +214,8 @@ export function buildSignal(ticker: UpbitTicker & { name?: string }, candles: Ca
     change24h: Number((ticker.signed_change_rate * 100).toFixed(2)),
     volumeKrw24h: ticker.acc_trade_price_24h,
     stopLoss,
-    thesis:
-      trendUp
-        ? `${toSymbol(ticker.market)}는 단기 EMA가 중기선 위에 있어 포지션 후보로 추적할 만합니다.`
-        : `${toSymbol(ticker.market)}는 거래대금과 단기 모멘텀을 우선 확인하는 전술 후보입니다.`,
+    thesis,
+    rationale,
     signals,
     metrics,
   };
@@ -118,20 +223,30 @@ export function buildSignal(ticker: UpbitTicker & { name?: string }, candles: Ca
 
 export function summarizeRegime(btcCandles: CandlePoint[]) {
   const last = btcCandles.at(-1);
-  const ema50 = ema(btcCandles, 50).at(-1)?.value;
-  const ema200 = ema(btcCandles, 200).at(-1)?.value;
+  const ema20Val = ema(btcCandles, 20).at(-1)?.value;
+  const ema50Val = ema(btcCandles, 50).at(-1)?.value;
+  const ema200Val = ema(btcCandles, 200).at(-1)?.value;
   const change7d = percentChange(btcCandles, 7);
   const change30d = percentChange(btcCandles, 30);
-  const bear = Boolean(last && ema50 && ema200 && last.close < ema50 && ema50 < ema200);
+  const macdResult = macd(btcCandles);
+
+  const bear = Boolean(last && ema50Val && ema200Val && last.close < ema50Val && ema50Val < ema200Val);
+  const bull = Boolean(last && ema20Val && ema50Val && ema200Val && last.close > ema20Val && ema20Val > ema50Val && ema50Val > ema200Val);
+
+  const regime: "bullish" | "neutral" | "bearish" = bull ? "bullish" : bear ? "bearish" : "neutral";
 
   return {
-    label: bear ? "BEAR" : "SELECTIVE",
+    label: bear ? "BEAR" : bull ? "BULL" : "SELECTIVE",
+    regime,
     change7d,
     change30d,
-    structure: last && ema50 && ema200 ? `가격 ${last.close < ema50 ? "<" : ">"} EMA50 ${ema50 < ema200 ? "<" : ">"} EMA200` : "n/a",
+    macdTrend: macdResult?.trend ?? null,
+    structure: last && ema50Val && ema200Val ? `가격 ${last.close < ema50Val ? "<" : ">"} EMA50 ${ema50Val < ema200Val ? "<" : ">"} EMA200` : "n/a",
     note: bear
       ? "시장 전체 베타보다 상대강도 강한 알트만 선별하는 구간입니다."
-      : "BTC 구조가 완전 약세는 아니지만, 거래대금과 추세 확인이 우선입니다.",
+      : bull
+        ? "BTC 상승 구조 확인. 추세 추종 전략이 유리한 구간입니다."
+        : "BTC 구조가 완전 약세는 아니지만, 거래대금과 추세 확인이 우선입니다.",
   };
 }
 
@@ -216,6 +331,7 @@ function compactSignalForPrompt(signal: CoinSignal) {
     volumeKrw24h: signal.volumeKrw24h,
     stopLoss: signal.stopLoss,
     thesis: signal.thesis,
+    rationale: signal.rationale,
     metrics: signal.metrics,
     fourPillars: findResearch(signal.symbol),
   };
@@ -261,7 +377,7 @@ async function callClaudeDailyReport(signals: CoinSignal[], regime: MarketRegime
       max_tokens: 1800,
       temperature: 0.2,
       system:
-        "You are a crypto research engine for KRW Upbit markets. Return strict JSON only. Do not give order execution instructions. Treat Four Pillars links as candidate research context, not verified facts.",
+        "You are a technical-indicator-based crypto research tool for KRW Upbit markets. You only have access to Upbit public API data (candles, volume, price) and computed indicators (EMA, RSI, MACD, Bollinger Bands, ATR). You do NOT have on-chain, funding rate, liquidation, or options data. Return strict JSON only. Do not give order execution instructions. Treat Four Pillars links as external search context, not verified research.",
       messages: [
         {
           role: "user",

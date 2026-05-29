@@ -19,16 +19,18 @@ export const revalidate = 300;
 
 async function getDashboardData() {
   const topTickers = await getTopKrwTickers(12);
+  const btcCandles = await getDayCandles("KRW-BTC", 220);
+  const regime = summarizeRegime(btcCandles);
+
   const analyzed = await Promise.all(
     topTickers.slice(0, 8).map(async (ticker) => {
       const candles = await getDayCandles(ticker.market, 220);
-      return buildSignal(ticker, candles);
+      return buildSignal(ticker, candles, regime.regime);
     }),
   );
-  const btcCandles = await getDayCandles("KRW-BTC", 220);
 
   return {
-    regime: summarizeRegime(btcCandles),
+    regime,
     signals: analyzed.sort((a, b) => b.score - a.score),
     tickers: topTickers,
   };

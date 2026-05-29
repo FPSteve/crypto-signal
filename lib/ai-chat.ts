@@ -7,35 +7,45 @@ export type ChatMessage = {
   content: string;
 };
 
+export type ChatRelayContext = {
+  market?: string;
+  symbol?: string;
+  context?: unknown;
+};
+
 // ---------------------------------------------------------------------------
 // Context builder — fetches live signal data and assembles the system prompt
 // ---------------------------------------------------------------------------
 
 async function buildContext() {
   const tickers = await getTopKrwTickers(12);
+  const btcCandles = await getDayCandles("KRW-BTC", 220);
+  const regime = summarizeRegime(btcCandles);
+
   const signals = await Promise.all(
     tickers.slice(0, 8).map(async (ticker) => {
       const candles = await getDayCandles(ticker.market, 220);
-      return buildSignal(ticker, candles);
+      return buildSignal(ticker, candles, regime.regime);
     }),
   );
-  const btcCandles = await getDayCandles("KRW-BTC", 220);
-  const regime = summarizeRegime(btcCandles);
   const sorted = signals.sort((a, b) => b.score - a.score);
 
   const signalSummary = sorted
     .map((s) => {
       const research = findResearch(s.symbol);
+      const m = s.metrics;
       return [
         `${s.symbol} (${s.name ?? s.market})`,
         `  가격: ${s.price.toLocaleString()}원 | 24h: ${s.change24h > 0 ? "+" : ""}${s.change24h}%`,
         `  버킷: ${s.bucket} | 스코어: ${s.score}/100`,
-        `  RSI14: ${s.metrics.rsi14 ?? "n/a"} | EMA20>${s.metrics.above20 ? "가격" : "미만"}`,
-        `  7d: ${s.metrics.change7d ?? "n/a"}% | 30d: ${s.metrics.change30d ?? "n/a"}%`,
-        `  추세: ${s.metrics.trendUp ? "EMA20>50>200 상승" : "확인필요"}`,
-        `  손절: ${s.stopLoss.toLocaleString()}원`,
-        `  테시스: ${s.thesis}`,
-        `  Four Pillars: ${research.url}`,
+        `  RSI14: ${m.rsi14 ?? "n/a"} | EMA20>${m.above20 ? "가격" : "미만"}`,
+        `  MACD: ${m.macd ? `${m.macd.trend} (hist=${m.macd.histogram})` : "n/a"}`,
+        `  볼린저: ${m.bollinger ? `%B=${m.bollinger.percentB.toFixed(2)}, 밴드폭=${m.bollinger.bandwidth}%` : "n/a"}`,
+        `  ATR14: ${m.atr14 ?? "n/a"} | ATR 손절: ${Math.round(s.stopLoss).toLocaleString()}원`,
+        `  7d: ${m.change7d ?? "n/a"}% | 30d: ${m.change30d ?? "n/a"}%`,
+        `  추세: ${m.trendUp ? "EMA20>50>200 상승" : "확인필요"}`,
+        `  선정 이유: ${s.rationale.slice(0, 4).join("; ")}`,
+        `  Four Pillars: ${research.url} (외부 검색 링크, 미검증)`,
       ].join("\n");
     })
     .join("\n\n");
@@ -46,12 +56,20 @@ async function buildContext() {
 export async function buildSystemPrompt(): Promise<string> {
   const { regime, signalSummary, signalCount } = await buildContext();
 
-  return `당신은 한국어를 사용하는 크립토 헤지펀드 시니어 리서치 애널리스트입니다.
-Upbit KRW 마켓을 전문으로 분석하며, 매크로 레짐, 기술적 지표, 온체인 데이터, Four Pillars 리서치를 종합합니다.
+  return `당신은 Upbit KRW 마켓 기술적 지표 기반 리서치 보조 도구입니다.
+아래 데이터만 사용하여 분석합니다. 보유하지 않은 데이터(온체인, 펀딩레이트, 청산, 옵션 데이터 등)에 대해서는 "데이터 없음"으로 명시합니다.
+
+## 데이터 출처
+- Upbit 공개 API: 일봉 캔들, 거래대금, 시세
+- 기술적 지표: EMA(20/50/200), RSI(14), MACD(12,26,9), 볼린저밴드(20,2σ), ATR(14)
+- 7일/30일 변동률
+- Four Pillars: 외부 검색 링크 (미검증, 참고용)
+- ※ 온체인, 펀딩레이트, 청산, 옵션 스큐 데이터는 없습니다.
 
 ## 현재 시장 레짐
-- 판정: ${regime.label}
+- 판정: ${regime.label} (${regime.regime ?? "neutral"})
 - BTC 구조: ${regime.structure}
+- BTC MACD: ${regime.macdTrend ?? "n/a"}
 - 7일 변동: ${regime.change7d ?? "n/a"}% | 30일 변동: ${regime.change30d ?? "n/a"}%
 - 참고: ${regime.note}
 
@@ -61,11 +79,12 @@ ${signalSummary}
 ## 행동 규칙
 1. 투자 조언이 아닌 리서치 보조 의견만 제공합니다. 반드시 면책 조항을 포함하세요.
 2. 구체적인 매수/매도 주문 금액이나 타이밍을 지시하지 않습니다.
-3. 데이터에 기반한 분석만 하고, 확인되지 않은 정보는 "확인 필요"로 표시합니다.
+3. 위 데이터에 기반한 분석만 하고, 제공되지 않은 데이터는 "데이터 없음 — 별도 확인 필요"로 표시합니다.
 4. 사용자가 특정 코인을 물어보면 위 시그널 데이터에서 해당 코인을 찾아 분석합니다.
 5. 한국어로 답변하되, 코인 심볼(BTC, ETH 등)은 영어 그대로 사용합니다.
 6. 답변은 구조적이고 간결하게, 핵심 수치를 포함합니다.
-7. 리스크 관리를 항상 강조합니다.`;
+7. 리스크 관리를 항상 강조합니다.
+8. Four Pillars 리서치는 "외부 검색 결과"로 취급하며, 검증된 자체 리서치가 아님을 명시합니다.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -170,6 +189,7 @@ function transformAnthropicStream(source: ReadableStream<Uint8Array>): ReadableS
 export async function streamRelayChat(
   systemPrompt: string,
   messages: ChatMessage[],
+  relayContext: ChatRelayContext = {},
 ): Promise<ReadableStream<Uint8Array>> {
   const relayUrl = process.env.CRYPTO_AI_RELAY_URL?.trim();
   if (!relayUrl) throw new Error("CRYPTO_AI_RELAY_URL not configured");
@@ -182,7 +202,13 @@ export async function streamRelayChat(
       "content-type": "application/json",
       ...(token ? { "x-crypto-ai-token": token } : {}),
     },
-    body: JSON.stringify({ system: systemPrompt, messages }),
+    body: JSON.stringify({
+      system: systemPrompt,
+      messages,
+      ...(relayContext.market ? { market: relayContext.market } : {}),
+      ...(relayContext.symbol ? { symbol: relayContext.symbol } : {}),
+      ...(relayContext.context !== undefined ? { context: relayContext.context } : {}),
+    }),
     cache: "no-store",
   });
 
@@ -204,11 +230,12 @@ export async function streamRelayChat(
 export async function streamChat(
   systemPrompt: string,
   messages: ChatMessage[],
+  relayContext: ChatRelayContext = {},
 ): Promise<ReadableStream<Uint8Array>> {
   // Tier 1: Local relay
   if (process.env.CRYPTO_AI_RELAY_URL?.trim()) {
     try {
-      return await streamRelayChat(systemPrompt, messages);
+      return await streamRelayChat(systemPrompt, messages, relayContext);
     } catch {
       // fall through to Tier 2
     }
