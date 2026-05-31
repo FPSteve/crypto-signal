@@ -109,20 +109,55 @@ ffmpeg -i src.mp4 -vf "select=eq(n\,30),scale=1920:-2" -frames:v 1 -c:v libwebp 
 
 ## 9.5 — Verification gate (before download / ship)
 
-Final clip URLs are NOT asserted here. Before download, run this pass (WebFetch or manual browser):
+Candidate clip URLs are now curated in §9.6, but **download files are still not asserted**.
+Before download, run this pass (WebFetch or manual browser):
 1. Open each candidate page, confirm the download-button license string is free-commercial.
 2. Record exact source resolution + file size.
 3. Confirm the clip is genuinely dark/abstract per §9.1.
 4. Only then download + encode per §9.4.
 
+Reject any Mixkit page where the visible download label says **Restricted License** or
+**Personal Use only**. Several visually strong 3D tunnel clips fall into that bucket, so they are
+not acceptable unless a commercial Envato license is intentionally purchased.
+
 Do not claim "§9 imagery shipped" until: clips encoded under budget, `public/hero/` populated, hero
 renders the video on a built/deployed page, and a prod canary confirms `video > 0` + poster fallback
 + reduced-motion path. That ship/PASS call is @Release's after a real deploy.
 
-## 9.6 — Curated candidate table (TO FILL after §9.5 pass)
+## 9.6 — Curated candidate table (Design pass, 2026-05-31)
+
+Decision: use **Pexels-first** for this implementation pass. The exact Pexels pages expose "Free to
+use" in-page and the Pexels License allows free use, modification, and no attribution. Coverr remains
+a valid source pool, but current search results mix native stock with iStock/AI/recreate inventory,
+so it needs a manual clip-level pass before it beats the Pexels candidates. Mixkit is a backup only
+when the exact clip page says **Mixkit Stock Video Free License**; restricted/personal-use clips are
+rejected.
 
 | Clip title | Source | Page URL | Res | License | Why it fits |
 |---|---|---|---|---|---|
-| _pending verification pass_ | | | | | |
-| _pending verification pass_ | | | | | |
-| _fallback — pending_ | | | | | |
+| **Abstract 3D Network Structure Animation** | Pexels / Nicola Narracci | https://www.pexels.com/video/abstract-3d-network-structure-animation-35004655/ | Page labels royalty-free 4K/HD; exact download size TBD | Pexels License; page shows "Free to use" | **Primary pick.** Best semantic fit: nodes, mesh, network/data structure. Dark/futuristic without literal crypto. Add 55-65% scrim and amethyst tint if frame is too blue. |
+| **Seamless loop of abstract glowing particles floating in a dark space** | Pexels / Colin Jones | https://www.pexels.com/video/abstract-glittering-particles-dark-background-35286672/ | Page labels royalty-free 4K/HD; exact download size TBD | Pexels License; page shows "Free to use" | **Primary alternate.** Explicit seamless-loop language, dark particle field, low narrative baggage. Strongest candidate if network clip feels too "tech SaaS." |
+| **Elegant Abstract Black Spheres on Dark Background** | Pexels / Nicola Narracci | https://www.pexels.com/video/elegant-abstract-black-spheres-on-dark-background-34541366/ | Page labels royalty-free 4K/HD; exact download size TBD | Pexels License; page shows "Free to use" | **Fallback.** Premium/quiet, very dark, least distracting behind text. Less data-specific, but safest for readability and compression. |
+
+## 9.7 — Source evidence captured in this Design run
+
+- Pexels candidate pages showed `Free download` and `Free to use` labels for the three selected
+  clips above.
+- Pexels License states photos/videos are free to use, attribution is not required, and modification
+  is allowed: https://www.pexels.com/license/
+- Mixkit's general free video pool is acceptable only for pages under the **Stock Video Free
+  License**. During this pass, multiple strong-looking Mixkit 3D/tunnel pages were rejected because
+  their free download was **Restricted License / Personal Use only**.
+- Coverr remains a good pool; its library pages state royalty-free commercial use and no attribution,
+  but this pass did not lock a single native Coverr clip URL because search results mixed iStock and
+  AI/recreate inventory.
+
+## 9.8 — EngLead handoff recommendation
+
+1. Start with candidate 1. If visual QA says it competes with the existing CSS/DOM hero motion, switch
+   to candidate 2.
+2. Download the smallest 1080p/4K source available, trim to 8-12s, then encode WebM/MP4/poster per
+   §9.4.
+3. If neither primary compresses under budget (`<=600KB` desktop, `<=350KB` mobile), use candidate 3.
+4. Do not use Mixkit restricted/personal-use tunnel clips unless CEO explicitly buys a commercial
+   license.
