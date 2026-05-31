@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, ListFilter } from "lucide-react";
 import { HeroMotionGraphic, type HeroMotionSignal } from "@/components/HeroMotionGraphic";
+import { HeroVideoLayer } from "@/components/HeroVideoLayer";
 import { MarketRegime } from "@/components/MarketRegime";
 import { CompactSignalRow } from "@/components/SignalCard";
 import { MarketMetricGrid } from "@/components/MarketMetricGrid";
@@ -47,6 +48,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <section className="market-hero px-5 sm:px-8">
+        <HeroVideoLayer />
         <div className="market-hero__inner mx-auto grid max-w-7xl gap-8 py-6 sm:py-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(26rem,0.8fr)] lg:items-center lg:py-16">
           <AnimatedHeader>
             <div className="hero-copy-motion max-w-4xl">

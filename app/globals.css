@@ -195,6 +195,7 @@ a.editorial-link:hover {
   content: "";
   position: absolute;
   inset: -30%;
+  z-index: 1;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
@@ -208,6 +209,7 @@ a.editorial-link:hover {
   content: "";
   position: absolute;
   inset: auto -10% -38% 18%;
+  z-index: 1;
   height: 50%;
   background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.12), transparent 68%);
   filter: blur(10px);
@@ -216,7 +218,53 @@ a.editorial-link:hover {
 
 .market-hero__inner {
   position: relative;
+  z-index: 2;
+}
+
+.hero-video-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-color: #111111;
+  background-position: center;
+  background-size: cover;
+  pointer-events: none;
+}
+
+.hero-video-layer::before,
+.hero-video-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-video-layer::before {
   z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(26, 26, 26, 0.9) 0%, rgba(26, 26, 26, 0.64) 42%, rgba(26, 26, 26, 0.82) 100%),
+    linear-gradient(180deg, rgba(26, 26, 26, 0.58) 0%, rgba(26, 26, 26, 0.42) 44%, rgba(26, 26, 26, 0.88) 100%);
+}
+
+.hero-video-layer::after {
+  z-index: 2;
+  background: linear-gradient(120deg, rgba(168, 85, 247, 0.1), transparent 34%, rgba(255, 255, 255, 0.035));
+  mix-blend-mode: screen;
+  opacity: 0.68;
+}
+
+.hero-video-layer__video {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+.hero-video-layer--poster-only {
+  opacity: 0.66;
 }
 
 .hero-copy-motion {
@@ -479,12 +527,18 @@ html[data-motion-paused="true"] .hero-motion-graphic * {
   .market-hero,
   .market-hero::before,
   .market-hero::after,
+  .hero-video-layer,
+  .hero-video-layer *,
   .hero-copy-motion,
   .hero-motion-graphic,
   .hero-motion-graphic *,
   .ticker-track,
   .skeleton {
     animation: none !important;
+  }
+
+  .hero-video-layer__video {
+    display: none;
   }
 }
 

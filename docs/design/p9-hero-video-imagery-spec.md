@@ -161,3 +161,30 @@ rejected.
 3. If neither primary compresses under budget (`<=600KB` desktop, `<=350KB` mobile), use candidate 3.
 4. Do not use Mixkit restricted/personal-use tunnel clips unless CEO explicitly buys a commercial
    license.
+
+## 9.9 — EngLead implementation evidence (2026-05-31)
+
+Implemented with candidate 1: **Pexels / Nicola Narracci — Abstract 3D Network Structure Animation**.
+
+Source verification:
+- Page URL: https://www.pexels.com/video/abstract-3d-network-structure-animation-35004655/
+- Download URL resolved from the Pexels `Free download` action:
+  `https://videos.pexels.com/video-files/35004655/14829557_1920_1080_30fps.mp4`
+- Source metadata: 1920x1080, 30fps, 10.00s, 6,889,473 bytes.
+- License evidence: Pexels page labels the clip `Free to use`; Pexels Help Center states Pexels
+  photos/videos are free for personal and commercial use without attribution.
+
+Encoded self-hosted assets:
+- `public/hero/hero-network-1080.webm` — VP9, 1920x1080, 18fps, 8.00s, 514,028 bytes.
+- `public/hero/hero-network-1080.mp4` — H.264 High/yuv420p, 1920x1080, 18fps, 8.00s, 562,985 bytes.
+- `public/hero/hero-network-720.webm` — VP9, 1280x720, 18fps, 8.00s, 279,813 bytes.
+- `public/hero/hero-network-720.mp4` — H.264 High/yuv420p, 1280x720, 18fps, 8.00s, 256,563 bytes.
+- `public/hero/hero-network-poster.webp` — 1920x1080, 38,862 bytes.
+
+Runtime implementation:
+- `HeroVideoLayer` is self-hosted and decorative (`aria-hidden=true`).
+- Desktop clients receive only 1080 sources; mobile clients receive only 720 sources.
+- `prefers-reduced-motion: reduce` and `navigator.connection.saveData` render poster-only with no
+  `<video>` node.
+- IntersectionObserver pauses playback when the hero leaves view.
+- Video load failure removes the video layer so the existing CSS/DOM hero motion remains the fallback.

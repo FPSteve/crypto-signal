@@ -29,7 +29,7 @@ export function FadeIn({
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...directionOffset[direction] }}
+      initial={{ opacity: 0, ...directionOffset[direction] }}
       animate={{ opacity: 1, x: 0, y: 0 }}
       transition={{ duration: shouldReduceMotion ? 0 : duration, delay: shouldReduceMotion ? 0 : delay, ease: [0.16, 1, 0.3, 1] }}
       {...rest}
@@ -78,7 +78,7 @@ export function StaggerItem({
     <motion.div
       className={className}
       variants={{
-        hidden: shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 },
+        hidden: { opacity: 0, y: 12 },
         visible: {
           opacity: 1,
           y: 0,
