@@ -16,21 +16,30 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
   useEffect(() => {
     if (!containerRef.current || candles.length === 0) return;
 
+    const rootStyle = getComputedStyle(document.documentElement);
+    const token = (name: string, fallback: string) => rootStyle.getPropertyValue(name).trim() || fallback;
+    const bgCard = token("--bg-card", "#202020");
+    const textMuted = token("--text-muted", "#8f8f8f");
+    const rule = token("--rule", "#2a2a2a");
+    const brand = token("--accent-brand", "#a855f7");
+    const bull = token("--accent-bull", "#17ba7c");
+    const bear = token("--accent-bear", "#f0384a");
+
     const chart = createChart(containerRef.current, {
       height,
       layout: {
-        background: { type: ColorType.Solid, color: "#16181c" },
-        textColor: "#9aa1ad",
+        background: { type: ColorType.Solid, color: bgCard },
+        textColor: textMuted,
       },
       grid: {
         vertLines: { color: "rgba(255,255,255,0.04)" },
         horzLines: { color: "rgba(255,255,255,0.04)" },
       },
       rightPriceScale: {
-        borderColor: "rgba(255,255,255,0.08)",
+        borderColor: rule,
       },
       timeScale: {
-        borderColor: "rgba(255,255,255,0.08)",
+        borderColor: rule,
         timeVisible: true,
       },
       crosshair: {
@@ -39,17 +48,17 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#17ba7c",
-      downColor: "#f0384a",
+      upColor: bull,
+      downColor: bear,
       borderVisible: false,
-      wickUpColor: "#17ba7c",
-      wickDownColor: "#f0384a",
+      wickUpColor: bull,
+      wickDownColor: bear,
     });
 
     candleSeries.setData(candles.map(({ time, open, high, low, close }) => ({ time, open, high, low, close })));
 
     const ema20 = chart.addSeries(LineSeries, {
-      color: "#7b5cff",
+      color: brand,
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: false,
@@ -57,7 +66,7 @@ export function CandleChart({ candles, height = 420 }: CandleChartProps) {
     ema20.setData(ema(candles, 20));
 
     const ema50 = chart.addSeries(LineSeries, {
-      color: "#6b727e",
+      color: textMuted,
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: false,

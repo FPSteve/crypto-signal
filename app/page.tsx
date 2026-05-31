@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ListFilter } from "lucide-react";
+import { HeroMotionGraphic, type HeroMotionSignal } from "@/components/HeroMotionGraphic";
 import { MarketRegime } from "@/components/MarketRegime";
 import { CompactSignalRow } from "@/components/SignalCard";
 import { MarketMetricGrid } from "@/components/MarketMetricGrid";
@@ -31,6 +32,12 @@ export default async function Home() {
   const topSignals = signals.slice(0, 8);
   const leadSignal = topSignals[0];
   const gridSignals = signals.slice(1, 8);
+  const heroSignals: HeroMotionSignal[] = topSignals.slice(0, 5).map((signal) => ({
+    symbol: signal.symbol,
+    score: signal.score,
+    change: formatSignedPercent(signal.change24h),
+    tone: signal.change24h > 0 ? "bull" : signal.change24h < 0 ? "bear" : "neutral",
+  }));
   const buckets = {
     daytrade: signals.filter((signal) => signal.bucket === "daytrade").slice(0, 3),
     swing: signals.filter((signal) => signal.bucket === "swing").slice(0, 3),
@@ -39,6 +46,66 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
+      <section className="market-hero px-5 sm:px-8">
+        <div className="market-hero__inner mx-auto grid max-w-7xl gap-8 py-6 sm:py-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(26rem,0.8fr)] lg:items-center lg:py-16">
+          <AnimatedHeader>
+            <div className="hero-copy-motion max-w-4xl">
+              <SectionKicker rule>Signals</SectionKicker>
+              <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-display)] text-5xl font-semibold leading-[0.95] text-[var(--text-primary)] sm:text-7xl lg:text-[76px]">
+                Crypto Signal Hub
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--text-secondary)] sm:text-lg">
+                Upbit KRW 마켓을 거래대금, 추세 구조, Four Pillars 리서치 근거로 압축해 지금 볼 후보만 먼저 띄웁니다.
+              </p>
+
+              {leadSignal && (
+                <div className="mt-7 max-w-3xl border-y border-[var(--rule)] py-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="brand">Lead Signal</Badge>
+                    <Badge variant={leadSignal.change24h >= 0 ? "bull" : "bear"}>
+                      24h {formatSignedPercent(leadSignal.change24h)}
+                    </Badge>
+                    <Badge variant={bucketMeta[leadSignal.bucket].variant}>{bucketMeta[leadSignal.bucket].label}</Badge>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-2">
+                    <Link
+                      href={`/coin/${leadSignal.symbol}`}
+                      className="font-[family-name:var(--font-display)] text-5xl font-semibold leading-none text-[var(--text-primary)] transition-colors hover:text-white sm:text-7xl"
+                    >
+                      {leadSignal.symbol}
+                    </Link>
+                    <span className="pb-1 font-[family-name:var(--font-mono)] text-xs text-[var(--text-muted)]">
+                      SCORE {leadSignal.score} · {leadSignal.name ?? leadSignal.market}
+                    </span>
+                  </div>
+                  <p className="mt-4 hidden max-w-3xl text-xl font-semibold leading-snug text-[var(--text-primary)] sm:block sm:text-2xl">
+                    {leadSignal.thesis}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href={`/coin/${leadSignal.symbol}`}
+                      className="hero-primary-cta inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--text-primary)] px-4 font-[family-name:var(--font-mono)] text-xs font-semibold uppercase tracking-[0.14em] transition-colors hover:bg-white"
+                    >
+                      Open Signal
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link
+                      href="/research"
+                      className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)] transition-colors hover:border-white/20 hover:bg-white/[0.04]"
+                    >
+                      Research Desk
+                      <ArrowUpRight size={15} />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </AnimatedHeader>
+
+          <HeroMotionGraphic regimeLabel={regime.label} signals={heroSignals} />
+        </div>
+      </section>
+
       <AnimatedRegimeSection>
         <MarketRegime regime={regime} />
       </AnimatedRegimeSection>
@@ -50,59 +117,16 @@ export default async function Home() {
           <AnimatedHeader>
             <div className="flex items-end justify-between gap-4 pb-5">
               <div>
-                <SectionKicker rule>Signals</SectionKicker>
-                <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-bold leading-tight text-[var(--text-primary)] sm:text-5xl">
-                  KRW 마켓 시그널 랭킹
-                </h1>
+                <SectionKicker rule>Signal Board</SectionKicker>
+                <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight text-[var(--text-primary)] sm:text-5xl">
+                  KRW 마켓 랭킹
+                </h2>
               </div>
               <p className="hidden max-w-xs text-right text-sm leading-6 text-[var(--text-secondary)] sm:block">
                 거래대금 상위 종목을 EMA, RSI, MACD, ATR 기준으로 점수화합니다.
               </p>
             </div>
           </AnimatedHeader>
-
-          {leadSignal && (
-            <Card hover={false} className="mb-5 overflow-hidden rounded-[var(--radius-lg)]">
-              <article className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_9rem]">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="brand">Lead Signal</Badge>
-                    <Badge variant={leadSignal.change24h >= 0 ? "bull" : "bear"}>
-                      24h {formatSignedPercent(leadSignal.change24h)}
-                    </Badge>
-                    <Badge variant={bucketMeta[leadSignal.bucket].variant}>{bucketMeta[leadSignal.bucket].label}</Badge>
-                  </div>
-                  <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-2">
-                    <Link
-                      href={`/coin/${leadSignal.symbol}`}
-                      className="font-[family-name:var(--font-display)] text-5xl font-bold leading-none text-[var(--text-primary)] transition-colors hover:text-white sm:text-7xl"
-                    >
-                      {leadSignal.symbol}
-                    </Link>
-                    <div className="pb-1 font-[family-name:var(--font-mono)] text-xs text-[var(--text-muted)]">
-                      #1 · SCORE {leadSignal.score} · {leadSignal.name ?? leadSignal.market}
-                    </div>
-                  </div>
-                  <p className="mt-5 max-w-4xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-snug text-[var(--text-primary)] sm:text-4xl">
-                    {leadSignal.thesis}
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-[family-name:var(--font-mono)] text-xs text-[var(--text-muted)]">
-                    <span>24h VOL {Math.round(leadSignal.volumeKrw24h / 1_000_000_000).toLocaleString()}B KRW</span>
-                    <span>STOP {Math.round(leadSignal.stopLoss).toLocaleString()} KRW</span>
-                    <span>RSI {leadSignal.metrics.rsi14 ?? "n/a"}</span>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/coin/${leadSignal.symbol}`}
-                  className="flex h-24 items-center justify-between rounded-[var(--radius-md)] border border-[var(--rule)] px-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.14em] text-[var(--text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.04] lg:h-full lg:flex-col lg:items-start"
-                >
-                  <span>Open Detail</span>
-                  <ArrowUpRight size={18} />
-                </Link>
-              </article>
-            </Card>
-          )}
 
           <AnimatedSignalList>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

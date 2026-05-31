@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Serif_KR } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalChrome } from "@/components/GlobalChrome";
 import { getTopKrwTickers } from "@/lib/upbit";
 import "./globals.css";
@@ -12,13 +12,6 @@ const geist = Geist({
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
-});
-
-const display = Noto_Serif_KR({
-  weight: ["500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -40,7 +33,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const tickers = await getChromeTickers();
 
   return (
-    <html lang="ko" className={`${geist.variable} ${geistMono.variable} ${display.variable}`}>
+    <html lang="ko" className={`${geist.variable} ${geistMono.variable}`}>
       <body className="font-[family-name:var(--font-body)]">
         <GlobalChrome tickers={tickers} />
         {children}
