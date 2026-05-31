@@ -49,12 +49,14 @@ export default async function Home() {
     <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       <section className="market-hero px-5 sm:px-8">
         <HeroVideoLayer />
-        <div className="market-hero__inner mx-auto grid max-w-7xl gap-8 py-6 sm:py-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(26rem,0.8fr)] lg:items-center lg:py-16">
+        <div className="market-hero__inner mx-auto grid max-w-7xl gap-8 py-6 sm:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.7fr)] lg:items-center lg:py-16">
           <AnimatedHeader>
             <div className="hero-copy-motion max-w-4xl">
               <SectionKicker rule>Signals</SectionKicker>
-              <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-display)] text-5xl font-semibold leading-[0.95] text-[var(--text-primary)] sm:text-7xl lg:text-[76px]">
-                Crypto Signal Hub
+              <h1 className="mt-4 max-w-4xl font-[family-name:var(--font-display)] text-5xl font-bold leading-[0.95] tracking-[-0.02em] text-[var(--text-primary)] sm:text-7xl lg:text-[84px]">
+                <span className="block">Crypto</span>
+                {" "}
+                <span className="hero-headline-accent block text-[var(--text-primary)]">Signal Hub</span>
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--text-secondary)] sm:text-lg">
                 Upbit KRW 마켓을 거래대금, 추세 구조, Four Pillars 리서치 근거로 압축해 지금 볼 후보만 먼저 띄웁니다.

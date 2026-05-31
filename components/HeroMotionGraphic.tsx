@@ -45,22 +45,21 @@ export function HeroMotionGraphic({ regimeLabel, signals }: HeroMotionGraphicPro
   return (
     <div className={`hero-motion-graphic ${paused ? "is-paused" : ""}`} aria-hidden="true">
       <div className="hero-motion-graphic__grid" />
-      <div className="hero-orbit hero-orbit--outer" />
-      <div className="hero-orbit hero-orbit--inner" />
 
-      <div className="hero-radar">
-        <div className="hero-radar__axis" />
-        <div className="hero-radar__axis hero-radar__axis--vertical" />
-        <div className="hero-radar__sweep" />
-        <span className="hero-radar__dot hero-radar__dot--one" />
-        <span className="hero-radar__dot hero-radar__dot--two" />
-        <span className="hero-radar__dot hero-radar__dot--three" />
+      <div className="hero-readout-caption">
+        <span>MODEL · V4 SIGNAL ENGINE</span>
+        <span>UNIVERSE · KRW TOP 312</span>
+        <span>REGIME · {regimeLabel}</span>
+        <span>CADENCE · 5M REFRESH</span>
       </div>
 
       <div className="hero-signal-stack">
         <div className="hero-signal-stack__head">
-          <span>{regimeLabel}</span>
-          <span>LIVE MODEL</span>
+          <span className="hero-regime-chip">{regimeLabel}</span>
+          <span className="hero-live-label">
+            <span className="hero-live-dot" />
+            LIVE MODEL
+          </span>
         </div>
         {visibleSignals.map((signal, index) => (
           <div
@@ -79,7 +78,7 @@ export function HeroMotionGraphic({ regimeLabel, signals }: HeroMotionGraphicPro
         {visibleSignals.map((signal, index) => (
           <span
             key={`${signal.symbol}-bar-${index}`}
-            className={`hero-bar hero-bar--${signal.tone}`}
+            className={`hero-bar hero-bar--${signal.tone} ${index === 0 ? "hero-bar--lead" : ""}`}
             style={{
               "--bar-height": `${Math.max(34, Math.min(96, signal.score))}%`,
               "--bar-index": index,

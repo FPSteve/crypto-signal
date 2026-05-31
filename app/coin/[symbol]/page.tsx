@@ -70,12 +70,7 @@ export default async function CoinPage({ params }: { params: Promise<{ symbol: s
         <section className="grid gap-8 py-8 lg:grid-cols-[1fr_24rem]">
           <AnimatedCoinChart>
           <div>
-            <CandleChart candles={candles} />
-            <div className="mt-4 flex gap-4 text-xs text-[var(--text-muted)]">
-              <span className="text-[var(--accent-brand)]">EMA20</span>
-              <span className="text-[var(--text-muted)]">EMA50</span>
-              <span>일봉 기준</span>
-            </div>
+            <CandleChart candles={candles} symbol={signal.symbol} />
           </div>
           </AnimatedCoinChart>
           <AnimatedCoinSidebar>
